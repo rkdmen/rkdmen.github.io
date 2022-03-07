@@ -30,6 +30,7 @@
     <meta name="msapplication-TileColor" content="#da532c" />
     <meta name="theme-color" content="#ffffff" />
     <title>J KMJ</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script
       async
@@ -56,14 +57,15 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+
     <link rel="stylesheet" href="./styles/index.css" />
   </head>
   <body>
     <div class="container">
-      <div class="animate__animated animate__headShake animate__repeat-2">
-        Hi?
+      <div class="intro">
+        <p class="intro-1" data-in-effect="flipInX">Hi?</p>
+        <p class="intro-2">I enjoy everything.</p>
       </div>
-      <p>I enjoy everything.</p>
       <div class="favorites">
         <div class="emoji-face">
           <span class="animate__animated animate__swing animate__infinite ib"
@@ -72,7 +74,14 @@
           😈
           <span class="animate__animated animate__shakeY ib">ᕗ</span>
         </div>
-        <div class="emoji-foods">🚭🥃🍾🥂🍷🍶🍸☕ 🍣🥩🍳🥐.</div>
+        <div class="emoji-foods">
+          🚭🥃🍾
+          <span class="animate__animated animate__swing animate__infinite ib"
+            >🥂</span
+          >
+
+          🍷🍶🍸☕ 🍣🥩🍳🥐.
+        </div>
         <div>
           👨🏻‍💻&lt{💻}/&gt📱🚗👞🐂🅰️🔞. 🐜📈🪙
           <span class="rotate">⚽️</span>
@@ -100,10 +109,7 @@
         </div>
       </div>
     </div>
-
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.6/velocity.min.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/velocity/1.4/velocity.min.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.6/velocity.ui.min.js"></script> -->
     <script src="./js/index.js"></script>
+    <script src="./js/letter.js"></script>
   </body>
 </html>

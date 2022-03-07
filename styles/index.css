@@ -1,10 +1,33 @@
+body {
+  line-height: 1.47059;
+  font-weight: 400;
+  letter-spacing: -0.022em;
+}
+
 .container {
   font-size: 16px;
 }
+
 .ib {
   display: inline-block;
 }
+.intro {
+  position: relative;
+  font-weight: 600;
+  font-size: 1.25em;
+}
+.intro p {
+  position: absolute;
+  margin: auto;
+  left: 0;
+  top: 0.3em;
+  right: 0;
+  opacity: 0;
+}
 
+.favorites {
+  padding-top: 2rem;
+}
 .heart,
 .earth {
   font-size: 22px;
