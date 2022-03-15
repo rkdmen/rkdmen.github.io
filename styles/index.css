@@ -1,7 +1,11 @@
 body {
+  position:relative;
+  overflow: hidden;
   line-height: 1.47059;
   font-weight: 400;
   letter-spacing: -0.022em;
+  touch-action: none;
+  -ms-touch-action: none;
 }
 
 .container {
