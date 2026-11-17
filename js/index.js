@@ -3,7 +3,7 @@ import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
 import { coffeeSteam } from './trails.js';
-import { starWave } from './stars.js';
+import { startStarfield } from './stars.js';
 
 const emojis = [...document.querySelectorAll('.emoji')];
 const drinks = emojis.filter(el => ['cheers', 'wine', 'sway'].includes(el.dataset.action));
@@ -86,13 +86,8 @@ if (!reducedMotion.matches) {
     setTimeout(ambientSteam, 700);
     return entrance();
   }).catch(() => {}).finally(() => {
-    // The former stars were competing with the entrance animations.
-    // Start a visible wave after landing, then twinkle every ~12 seconds.
-    const sparkleLoop = () => {
-      if (!document.hidden && !surpriseRunning) starWave();
-      setTimeout(sparkleLoop, rand(10500, 13500));
-    };
-    setTimeout(sparkleLoop, 500);
+    // Fill the genuinely empty area below the emojis with random ambient starlight.
+    setTimeout(startStarfield, 400);
     trigger(choose(drinks));
     setTimeout(tick, 220);
     setTimeout(heartbeat, 750);

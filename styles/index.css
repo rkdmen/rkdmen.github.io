@@ -140,11 +140,18 @@ html.type-pending .headline { clip-path: inset(0 100% 0 0); }
   .headline.is-typing { animation: none; }
 }
 
-/* Large, high-contrast but brief start twinkles, kept inside a fixed overlay. */
-.star-stage { position:fixed; inset:0; z-index:23; overflow:hidden; pointer-events:none; contain:layout paint; }
-.twinkle-star { position:absolute; display:block; font-family:system-ui,sans-serif;
-  line-height:1; pointer-events:none; text-shadow:0 0 6px currentColor,0 0 13px currentColor;
-  will-change:transform,opacity; }
+/* A sparse, animated star field placed only below the emoji content. */
+.star-stage {
+  position: fixed; inset: 0; z-index: 18; overflow: hidden;
+  pointer-events: none; contain: layout paint;
+}
+.twinkle-star {
+  position: absolute; display: block; line-height: 1;
+  font-family: system-ui, "Apple Color Emoji", sans-serif;
+  font-weight: 400; pointer-events: none;
+  text-shadow: 0 0 7px currentColor, 0 0 18px currentColor;
+  will-change: transform, opacity;
+}
 .emoji[data-action="coin"] { perspective:200px; }
 .trail-ant { background:rgba(111,75,46,.60); }
 @media(prefers-color-scheme:dark){.trail-ant{background:rgba(233,193,130,.64)}}
