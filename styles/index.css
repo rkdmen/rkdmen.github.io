@@ -1,28 +1,50 @@
-:root { color-scheme: light dark; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; color: #222629; background: #fff; font-synthesis: none; }
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  color: #222629;
+  background: #fff;
+  font-synthesis: none;
+}
 * { box-sizing: border-box; }
-body { margin: 0; min-height: 100vh; }
-.page { max-width: 900px; padding: 14px 24px 48px; margin: 0 auto; }
-h1 { font-size: clamp(32px, 5.3vw, 40px); font-weight: 700; letter-spacing: -.055em; line-height: 1.18; margin: 0 0 6px; }
+html, body { margin: 0; min-height: 100%; }
+.page { width: 100%; max-width: 900px; padding: 12px 20px 14px; margin: 0 auto; }
+h1 { font-size: clamp(29px, 5vw, 40px); font-weight: 700; letter-spacing: -.055em; line-height: 1.18; margin: 0 0 7px; }
 .period { cursor: pointer; display: inline-block; outline-offset: 5px; }
-/* Sized so the widest row fits on one line. */
-.emoji-lines { font-size: clamp(12px, calc((100vw - 40px) / 20.5), 29px); line-height: 1.67; }
-.emoji-line { white-space: nowrap; }
-.emoji-line { display: block; min-height: 1.5em; }
+.emoji-lines { width: 100%; font-size: 20px; line-height: 1.48; }
+.emoji-line { display: block; width: max-content; max-width: none; min-height: 1.48em; white-space: nowrap; }
 .mood { padding-left: 4.9em; }
-.emoji { font: inherit; color: inherit; line-height: 1.45; padding: 0 1px; border: none; border-radius: 7px; background: none; cursor: pointer; display: inline-block; vertical-align: baseline; transform-origin: center center; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.emoji {
+  font: inherit; color: inherit; line-height: 1.4; padding: 0 1px;
+  border: none; border-radius: 7px; background: none; cursor: pointer;
+  display: inline-block; vertical-align: baseline; transform-origin: center center;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  will-change: transform;
+}
 .emoji:hover { background: #f5f5f5; }
-.emoji { will-change: transform; }
-.emoji:focus-visible,.period:focus-visible { outline: 2px solid #3478f6; }
+.emoji:focus-visible, .period:focus-visible { outline: 2px solid #3478f6; }
 .text-emoji { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: -.09em; }
 .punctuation { white-space: pre; }
 .spark { position: fixed; pointer-events: none; z-index: 10; font-size: 19px; will-change: transform, opacity; }
-@media (prefers-color-scheme: dark) { :root { color: #f5f5f5; background: #0b0e13; } .emoji:hover { background: rgba(255, 255, 255, .1); } }
+.emoji-actor {
+  position: fixed; z-index: 15; display: flex; align-items: center; justify-content: center;
+  appearance: none; -webkit-appearance: none; border: 0 !important; outline: 0 !important;
+  box-shadow: none !important; border-radius: 0; padding: 0; margin: 0;
+  background: transparent !important; pointer-events: none;
+  line-height: 1.4; white-space: nowrap; will-change: transform;
+}
+.snow-particle {
+  position: fixed; z-index: 14; display: block; border-radius: 50%;
+  background: #fff; border: 1px solid rgba(135, 160, 185, .32);
+  box-shadow: 0 0 5px rgba(135, 175, 205, .4);
+  pointer-events: none; will-change: transform, opacity;
+}
 @media (min-width: 1000px) { .page { padding-left: 0; } }
-@media (max-width: 500px) { .page { padding: 20px 18px; } .emoji-lines { line-height: 1.8; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-
+@media (max-width: 500px) { .page { padding: 12px 12px 10px; } h1 { font-size: clamp(27px, 8vw, 34px); } .emoji-lines { line-height: 1.4; } .emoji-line { min-height: 1.4em; } }
+@media (prefers-color-scheme: dark) {
+  :root { color: #f5f5f5; background: #0b0e13; }
+  .emoji:hover { background: rgba(255, 255, 255, .1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 @media (prefers-reduced-motion: no-preference) { .emoji:hover { filter: saturate(1.22); } }
-/* Detached traveling emojis leave the original inline layout untouched. */
-.emoji-actor { position: fixed; z-index: 15; display: flex; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; border: 0 !important; outline: 0 !important; box-shadow: none !important; border-radius: 0; padding: 0; margin: 0; background: transparent !important; pointer-events: none; line-height: 1.45; white-space: nowrap; will-change: transform; }
-/* Snow dust follows the snowboard actor and dissolves without blocking taps. */
-.snow-particle { position: fixed; z-index: 14; display: block; border-radius: 50%; background: #fff; border: 1px solid rgba(135, 160, 185, .32); box-shadow: 0 0 5px rgba(135, 175, 205, .4); pointer-events: none; will-change: transform, opacity; }

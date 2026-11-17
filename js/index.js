@@ -1,6 +1,7 @@
 import { behaviors, toast } from './behaviors.js';
 import { reducedMotion, rand, choose, particles } from './engine.js';
 import { entrance } from './intro.js';
+import './layout.js';
 
 const emojis = [...document.querySelectorAll('.emoji')];
 const drinks = emojis.filter(el => ['cheers','wine','sway'].includes(el.dataset.action) || ['Whiskey','Champagne'].includes(el.ariaLabel));

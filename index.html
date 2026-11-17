@@ -11,6 +11,16 @@
   <title>I enjoy everything. ✨</title>
   <link rel="icon" href="./assets/favicon.ico" />
   <link rel="stylesheet" href="./styles/index.css" />
+  <!-- Google Analytics (existing property) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JS8ZFKP3ZF"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag("js", new Date());
+    gtag("config", "G-JS8ZFKP3ZF");
+  </script>
+  <!-- Sentry (existing project) -->
+  <script src="https://js.sentry-cdn.com/99a8b7e6470f4fc6b6be215c0af3a5d6.min.js" crossorigin="anonymous"></script>
   <script type="module" src="./js/index.js"></script>
 </head>
 <body>
