@@ -51,11 +51,14 @@ function heartbeat() {
 }
 
 const title = document.querySelector('.headline');
-title?.addEventListener('click', () => {
+title?.addEventListener('click', async () => {
   if (surpriseRunning || reducedMotion.matches) return;
   surpriseRunning = true;
-  surprise(title, emojis);
-  setTimeout(() => { surpriseRunning = false; }, emojis.length * 38 + 500);
+  try {
+    await surprise(title, emojis);
+  } finally {
+    surpriseRunning = false;
+  }
 });
 
 const whenVisible = () => new Promise(resolve => {

@@ -1,5 +1,6 @@
 import { play, travel, choose, particles } from './engine.js';
 import { cloudTrail } from './intro.js';
+import { animate } from 'https://cdn.jsdelivr.net/npm/motion@14.11.1/+esm';
 
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
@@ -50,15 +51,69 @@ export function toast(drinks, anchor = choose(drinks)) {
   return Promise.all([first, second]);
 }
 
-// Touch the title to start a fast stadium wave and tiny emoji confetti.
-export function surprise(title, emojis) {
-  particles(title, ['✨', '🍷', '⚽', '❤️', '✈️', '⛳'], 12);
-  play(title, { scale: [1, 1.04, 1], rotate: [0, -1.5, 1.5, 0] }, { duration: .65 });
-  emojis.forEach((el, i) => {
-    setTimeout(() => play(el, {
-      y: [0, -16, 0], scale: [1, 1.19, 1]
-    }, { duration: .45 }), i * 38);
-  });
+// Tiny rainbow burst. Nodes are fixed, short-lived, and don't change layout.
+function confetti(title) {
+  const rect = title.getBoundingClientRect();
+  const colors = ['#ef7eb3','#ffbe5a','#8ed7ae','#81b3f7','#b99bfa'];
+  const icons = ['✨','🍣','🍷','⚽','❤️','✦'];
+  const animations = [];
+  const count = 25;
+  for (let i = 0; i < count; i++) {
+    const bit = document.createElement('span');
+    bit.className = 'party-particle';
+    const icon = i % 5 === 0;
+    if (icon) {
+      bit.textContent = icons[Math.floor(i / 5) % icons.length];
+      bit.style.fontSize = '15px';
+    } else {
+      const size = 5 + Math.random() * 5;
+      bit.style.width = `${size}px`;
+      bit.style.height = `${size * .65}px`;
+      bit.style.borderRadius = i % 3 ? '1px' : '50%';
+      bit.style.background = colors[i % colors.length];
+    }
+    bit.style.left = `${rect.left + rect.width * (.15 + Math.random() * .7)}px`;
+    bit.style.top = `${rect.top + rect.height * .52}px`;
+    document.body.append(bit);
+    const angle = i * Math.PI * 2 / count + (Math.random() - .5) * .55;
+    const radius = 55 + Math.random() * Math.min(135, window.innerWidth * .27);
+    const dx = Math.cos(angle) * radius;
+    const dy = Math.sin(angle) * radius;
+    const spin = (Math.random() > .5 ? 1 : -1) * (210 + Math.random() * 360);
+    const animation = animate(bit, {
+      x: [0, dx * .55, dx],
+      y: [0, dy * .55 - 22, dy + 34],
+      rotate: [0, spin * .45, spin],
+      opacity: [0, 1, 1, 0],
+      scale: [.3, 1, .55]
+    }, { duration: 1.05 + Math.random() * .45, ease: 'easeOut' });
+    animations.push(animation.finished.catch(() => {}).finally(() => bit.remove()));
+  }
+  return Promise.allSettled(animations);
+}
+
+// A short, exuberant emoji cascade; the page returns to normal afterward.
+export async function surprise(title, emojis) {
+  title.classList.add('is-celebrating');
+  try {
+    const titlePop = play(title, {
+      scale: [1,.94,1.11,.98,1.04,1],
+      rotate: [0,-2.5,2.5,-1,0]
+    }, { duration: .98, ease: 'easeOut' });
+    const burst = confetti(title);
+    const wave = emojis.map((el, index) =>
+      new Promise(resolve => setTimeout(resolve, index * 30)).then(() =>
+        play(el, {
+          y: [0,-12 - (index % 3) * 5,0],
+          scale: [1,1.13 + (index % 4) * .055,1],
+          rotate: [0,index % 2 ? -9 : 9,0]
+        }, { duration: .5, ease: 'easeOut' })
+      )
+    );
+    await Promise.allSettled([titlePop, burst, ...wave]);
+  } finally {
+    title.classList.remove('is-celebrating');
+  }
 }
 
 // Same entries handle both idle activity and taps; taps are deliberately bigger.
