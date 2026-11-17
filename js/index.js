@@ -3,7 +3,7 @@ import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
 import { coffeeSteam } from './trails.js';
-import { play, particles } from './engine.js';
+import { starWave } from './stars.js';
 
 const emojis = [...document.querySelectorAll('.emoji')];
 const drinks = emojis.filter(el => ['cheers', 'wine', 'sway'].includes(el.dataset.action));
@@ -60,21 +60,6 @@ function ambientSteam() {
   setTimeout(ambientSteam, rand(1650, 2600));
 }
 
-// A brief mix of large and small star twinkles across the bottom emoji row.
-function startTwinkles() {
-  const bottom = document.querySelector('.emoji-line:last-child');
-  if (!bottom || reducedMotion.matches) return;
-  const picks = [...bottom.querySelectorAll('.emoji')].filter(el => el.dataset.action !== 'fly');
-  picks.forEach((el, i) => setTimeout(() => {
-    if (document.hidden || surpriseRunning || busy.has(el)) return;
-    play(el, {
-      scale: [1, i % 2 ? 1.10 : 1.26, .94, 1],
-      y: [0, -4 - (i % 2) * 3, 0, 0]
-    }, { duration: .55, ease: 'easeOut' });
-    particles(el, i % 2 ? ['✦'] : ['✨'], i % 2 ? 1 : 2);
-  }, 360 + i * 140));
-}
-
 const title = document.querySelector('.headline');
 title?.addEventListener('click', async () => {
   if (surpriseRunning || reducedMotion.matches) return;
@@ -98,10 +83,16 @@ const whenVisible = () => new Promise(resolve => {
 
 if (!reducedMotion.matches) {
   whenVisible().then(() => {
-    startTwinkles();
     setTimeout(ambientSteam, 700);
     return entrance();
   }).catch(() => {}).finally(() => {
+    // The former stars were competing with the entrance animations.
+    // Start a visible wave after landing, then twinkle every ~12 seconds.
+    const sparkleLoop = () => {
+      if (!document.hidden && !surpriseRunning) starWave();
+      setTimeout(sparkleLoop, rand(10500, 13500));
+    };
+    setTimeout(sparkleLoop, 500);
     trigger(choose(drinks));
     setTimeout(tick, 220);
     setTimeout(heartbeat, 750);

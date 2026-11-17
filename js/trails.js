@@ -91,3 +91,12 @@ export function champagneBubbles(el, count = 5) {
     ], rand(650, 1200));
   }
 }
+
+function antDot(x,y) {
+  particle('ant',x,y,rand(2,4),[
+    {transform:'translate3d(0,0,0) scale(1)',opacity:.65},
+    {transform:'translate3d(0,-4px,0) scale(.1)',opacity:0}
+  ],rand(500,850));
+}
+export const antTrail = () => trail(85,2,rect=>
+  ({x:rect.x+rect.width*.18,y:rect.y+rect.height*.76}),antDot);

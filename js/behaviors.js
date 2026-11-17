@@ -1,5 +1,5 @@
 import { play, travel, choose, particles } from './engine.js';
-import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles } from './trails.js';
+import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail } from './trails.js';
 
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
@@ -71,8 +71,30 @@ export const behaviors = {
   buzz: el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 }),
   drive: (el, ctx) => travel(el, [[0,0],[65,-1],[0,0]], { duration: ctx.clicked ? 1.4 : 1.1, onMove: exhaustTrail() }),
   charge: el => travel(el, [[0,0],[-13,0],[55,0],[0,0]], { duration: 1.1 }),
-  crawl: el => travel(el, [[0,0],[14,-2,-4],[28,0,6],[0,0]], { duration: 1.3 }),
-  grow: el => play(el, { y: [0,-23,0], scale: [1,1.28,1] }, { duration: .62 }),
+  crawl: (el, ctx) => {
+    if (ctx.clicked) particles(el, ['🍪','✦'], 3);
+    return travel(el, [[0,0],[9,-7,-12],[28,6,10],[47,-9,-5],[30,2,12],[0,0,0]], {
+      duration: ctx.clicked ? 2.0 : 1.5, onMove: antTrail()
+    });
+  },
+  grow: (el, ctx) => {
+    // Decorative market pulse, no data or price signal.
+    particles(el, ctx.clicked ? ['↗','✦','↘','✨'] : ['↗','✦'], ctx.clicked ? 6 : 3);
+    return play(el, {
+      y: [0,-9,5,-23,-12,0],
+      x: [0,3,-2,5,0,0],
+      rotate: [0,-7,5,-8,3,0],
+      scale: [1,1.1,.92,1.32,1.13,1]
+    }, { duration: ctx.clicked ? 1.18 : .88 });
+  },
+  coin: (el, ctx) => {
+    if (ctx.clicked) particles(el, ['✨','✦','💰'], 6);
+    return play(el, {
+      rotateY: [0,90,180,270,360,540,720],
+      y: [0,-12,-22,-29,-18,-7,0],
+      scale: [1,1.1,1.22,1.33,1.2,1.1,1]
+    }, { duration: ctx.clicked ? 1.25 : .95, ease: 'easeOut' });
+  },
   spin: el => play(el, { y: [0,-5,0], scale: [1,1.1,1] }, { duration: .75 }),
   kick: (_el, ctx) => golfShot(ctx),
   golf: (el, ctx) => el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 }),
