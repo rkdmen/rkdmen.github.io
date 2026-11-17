@@ -1,83 +1,88 @@
 import { animate } from 'https://cdn.jsdelivr.net/npm/motion@14.11.1/+esm';
-import { reducedMotion, rand, glide, easeOut } from './engine.js';
+import { reducedMotion, rand, glideBezier } from './engine.js';
 
+// A small, throttled snow trail. No layout reads on animation frames.
 function emitSnow(x, y) {
-  for (let i = 0; i < 2; i++) {
-    const dot = document.createElement('i');
-    dot.className = 'snow-particle';
-    const size = rand(3, 7);
-    Object.assign(dot.style, {
-      left: `${x + rand(-7, 7)}px`, top: `${y + rand(-5, 5)}px`,
-      width: `${size}px`, height: `${size}px`
-    });
-    document.body.append(dot);
-    animate(dot, {
-      x: [0, rand(-31, -6)],
-      y: [0, rand(-19, 28)],
-      opacity: [.95, .85, 0],
-      scale: [1, .8, .2]
-    }, { duration: rand(.42, .72), ease: 'easeOut' }).finished
-      .catch(() => {}).finally(() => dot.remove());
-  }
+  const dot = document.createElement('i');
+  dot.className = 'snow-particle';
+  const size = rand(3, 6);
+  Object.assign(dot.style, {
+    left: `${x + rand(-4, 4)}px`, top: `${y + rand(-3, 3)}px`,
+    width: `${size}px`, height: `${size}px`
+  });
+  document.body.append(dot);
+  animate(dot, {
+    x: [0, rand(-16, -5)], y: [0, rand(-11, 17)],
+    opacity: [.85, .65, 0], scale: [1, .75, .25]
+  }, { duration: rand(.55, .9), ease: 'easeOut' }).finished
+    .catch(() => {}).finally(() => dot.remove());
 }
 
 function snowTrail() {
   let last = 0;
-  return actor => {
+  return ({ x, y, width, height }) => {
     const now = performance.now();
-    if (now - last < 65) return;
+    if (now - last < 105) return;
     last = now;
-    const at = actor.getBoundingClientRect();
-    emitSnow(at.left + at.width * .25, at.bottom - 3);
+    emitSnow(x + width * .24, y + height * .86);
   };
 }
 
-function viewRect() {
+function viewportRect() {
   const v = window.visualViewport;
-  const left = v?.offsetLeft || 0;
-  const top = v?.offsetTop || 0;
   return {
-    left, top,
+    left: v?.offsetLeft || 0, top: v?.offsetTop || 0,
     width: v?.width || window.innerWidth,
     height: v?.height || window.innerHeight
   };
 }
 
-// All coordinates are derived from the destination. The final [0,0] always
-// places the original emoji back in its exact inline slot.
+// Each knot is measured relative to the final emoji slot so layout stays intact.
 export async function entrance() {
-  if (reducedMotion.matches || document.hidden) return;
+  if (reducedMotion.matches || document.hidden) {
+    document.documentElement.classList.remove('intro-pending');
+    return;
+  }
   const plane = document.querySelector('[data-action="fly"]');
   const board = document.querySelector('[data-action="ski"]');
-  if (!plane || !board) return;
-  const v = viewRect();
+  if (!plane || !board) {
+    document.documentElement.classList.remove('intro-pending');
+    return;
+  }
+  const view = viewportRect();
   const p = plane.getBoundingClientRect();
   const b = board.getBoundingClientRect();
-  const x = fraction => v.left + v.width * fraction;
-  const y = fraction => v.top + v.height * fraction;
-  const planeTo = (absoluteX, absoluteY, angle) => [absoluteX - p.left, absoluteY - p.top, angle];
-  const boardTo = (absoluteX, absoluteY, angle) => [absoluteX - b.left, absoluteY - b.top, angle];
+  const X = fraction => view.left + view.width * fraction;
+  const Y = fraction => view.top + view.height * fraction;
+  const pointFor = (rect, x, y) => [x - rect.left, y - rect.top];
 
-  // Enters from the bottom right, sweeps left, then right, making an S before landing.
-  const flight = glide(plane, [
-    planeTo(v.left + v.width + p.width, v.top + v.height + p.height, -30),
-    planeTo(x(.78), y(.76), -28),
-    planeTo(x(.20), y(.55), 16),
-    planeTo(x(.73), y(.33), -20),
-    planeTo(p.left - Math.min(45, v.width * .12), p.top - 28, 14),
-    [0, 0, 0]
-  ], { duration: 2.2, ease: easeOut });
+  const planeStart = [view.left + view.width + 8, view.top + view.height + 10];
+  const boardStart = [view.left - b.width - 6, view.top + view.height + 10];
 
-  await new Promise(resolve => setTimeout(resolve, 260));
-  // Rides in from the bottom left, carving across the page with snow dust.
-  const ride = glide(board, [
-    boardTo(v.left - b.width - 15, v.top + v.height + 18, -24),
-    boardTo(x(.14), y(.78), -20),
-    boardTo(x(.46), y(.60), 14),
-    boardTo(x(.25), y(.42), -13),
-    boardTo(b.left - 24, b.top + 24, 9),
-    [0, 0, 0]
-  ], { duration: 1.95, ease: easeOut, onMove: snowTrail() });
+  const planeKnots = [
+    pointFor(p, ...planeStart),
+    pointFor(p, X(.29), Y(.59)),
+    pointFor(p, X(.71), Y(.40)),
+    [0, 0]
+  ];
+  const snowboardKnots = [
+    pointFor(b, ...boardStart),
+    pointFor(b, X(.17), Y(.76)),
+    pointFor(b, X(.48), Y(.52)),
+    pointFor(b, X(.29), Y(.38)),
+    [0, 0]
+  ];
 
-  await Promise.allSettled([flight, ride]);
+  // Both stand-ins are created immediately, preventing an original emoji
+  // from flashing in its final position before its entrance begins.
+  try {
+    const flight = glideBezier(plane, planeKnots, { duration: 4.2, roll: 13 });
+    const ride = glideBezier(board, snowboardKnots, {
+      duration: 3.75, delay: .28, roll: 9, onMove: snowTrail()
+    });
+    document.documentElement.classList.remove('intro-pending');
+    await Promise.allSettled([flight, ride]);
+  } finally {
+    document.documentElement.classList.remove('intro-pending');
+  }
 }

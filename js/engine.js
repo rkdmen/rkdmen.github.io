@@ -87,6 +87,121 @@ export async function glide(el, points, { duration, ease, onMove }) {
   }
 }
 
+// Smooth cinematic entrances use a separate cubic Bézier path. Ordinary emoji
+// interactions continue to use the lightweight travel() API above.
+function splineSegments(knots) {
+  const factor = 1 / 6;
+  return knots.slice(0, -1).map((start, index) => {
+    const end = knots[index + 1];
+    const previous = knots[Math.max(0, index - 1)];
+    const next = knots[Math.min(knots.length - 1, index + 2)];
+    return [
+      start,
+      [start[0] + (end[0] - previous[0]) * factor,
+       start[1] + (end[1] - previous[1]) * factor],
+      [end[0] - (next[0] - start[0]) * factor,
+       end[1] - (next[1] - start[1]) * factor],
+      end
+    ];
+  });
+}
+
+function cubicPoint(segment, t) {
+  const [a, b, c, d] = segment;
+  const reverse = 1 - t;
+  return [0, 1].map(axis =>
+    reverse ** 3 * a[axis] +
+    3 * reverse ** 2 * t * b[axis] +
+    3 * reverse * t ** 2 * c[axis] +
+    t ** 3 * d[axis]
+  );
+}
+
+// Sample once and travel by distance rather than by segment index. That means
+// the emoji doesn't accelerate at a tight bend or jump between waypoints.
+export function sampleSmoothPath(knots, steps = 48) {
+  const segments = splineSegments(knots);
+  const samples = [{ point: knots[0], length: 0 }];
+  let total = 0;
+  for (const segment of segments) {
+    for (let i = 1; i <= steps; i++) {
+      const point = cubicPoint(segment, i / steps);
+      const previous = samples[samples.length - 1].point;
+      total += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
+      samples.push({ point, length: total });
+    }
+  }
+  return progress => {
+    const target = Math.max(0, Math.min(1, progress)) * total;
+    let low = 0, high = samples.length - 1;
+    while (low < high) {
+      const mid = (low + high) >>> 1;
+      if (samples[mid].length < target) low = mid + 1;
+      else high = mid;
+    }
+    const end = samples[low];
+    const start = samples[Math.max(0, low - 1)];
+    const range = end.length - start.length;
+    const blend = range > 0 ? (target - start.length) / range : 0;
+    return [
+      start.point[0] + (end.point[0] - start.point[0]) * blend,
+      start.point[1] + (end.point[1] - start.point[1]) * blend
+    ];
+  };
+}
+
+// The first and final portions are gentle; the middle maintains an even speed.
+const cruiseEase = progress => {
+  const ramp = .19;
+  const peak = 1 / (1 - ramp);
+  if (progress < ramp) return peak * progress * progress / (2 * ramp);
+  if (progress > 1 - ramp) {
+    const remaining = 1 - progress;
+    return 1 - peak * remaining * remaining / (2 * ramp);
+  }
+  return peak * (progress - ramp / 2);
+};
+
+export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll = 8, onMove } = {}) {
+  if (reducedMotion.matches || !el || gliding.has(el)) return;
+  gliding.add(el);
+  const rect = el.getBoundingClientRect();
+  const computed = getComputedStyle(el);
+  const ghost = document.createElement('span');
+  ghost.className = 'emoji-actor';
+  ghost.textContent = el.textContent;
+  ghost.setAttribute('aria-hidden', 'true');
+  Object.assign(ghost.style, {
+    left: `${rect.left}px`, top: `${rect.top}px`,
+    width: `${rect.width}px`, height: `${rect.height}px`,
+    fontSize: computed.fontSize, fontFamily: computed.fontFamily,
+    fontWeight: computed.fontWeight, letterSpacing: computed.letterSpacing
+  });
+  const at = sampleSmoothPath(knots);
+  const place = t => {
+    const u = cruiseEase(t);
+    const [x, y] = at(u);
+    // Slight banking follows the turns but never snaps to a new angle.
+    const rotation = roll * Math.sin(2 * Math.PI * u) * Math.sin(Math.PI * u);
+    ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
+    onMove?.({ x: rect.left + x, y: rect.top + y, width: rect.width, height: rect.height });
+  };
+  place(0);
+  document.body.append(ghost);
+  el.style.visibility = 'hidden';
+  try {
+    const animation = animate(0, 1, {
+      duration, delay, ease: 'linear', onUpdate: place
+    });
+    await animation.finished;
+    place(1);
+  } finally {
+    ghost.remove();
+    el.style.visibility = '';
+    gliding.delete(el);
+  }
+}
+
 // Shrinks the path to fit the emoji rows instead of flattening it at the edges.
 export function travel(el, points, { duration }) {
   const bounds = document.querySelector('.emoji-lines')?.getBoundingClientRect();
