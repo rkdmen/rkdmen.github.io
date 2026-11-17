@@ -1,6 +1,6 @@
 import { play, travel, passThrough, choose, particles } from './engine.js';
 import { matrixRain } from './matrix.js';
-import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail } from './trails.js';
+import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
 // Blurred for about 1.5s between the fades.
@@ -71,12 +71,14 @@ export const behaviors = {
   rock: (el, ctx) => play(el, { rotate: [0, -24, 22, -16, 0], scale: [1, 1.22, 1] }, { duration: .6 }),
   devil: (el) => { particles(el, ['😈','🔥'], 3); return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 }); },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
-  no: el => { particles(el, ['🔥', '💨'], 3); return shake(el); },
+  no: el => { particles(el, ['🔥'], 3); return shake(el); },
   censor: (el, ctx) => (ctx.clicked ? blurOthers() : blurSelf(el)),
   cheers: (el, ctx) => toast(ctx.drinks, el),
   wine: (el, ctx) => toast(ctx.drinks, el),
   sway: (el, ctx) => toast(ctx.drinks, el),
   pop: el => { particles(el); return bump(el); },
+  bleed: (el, ctx) => { bloodDrops(el, ctx.clicked ? 22 : 3); return play(el, { y: [0, -4, 0], scale: [1, 1.1, 1] }, { duration: .5 }); },
+  flag: el => play(el, { rotate: [0, -10, 7, -4, 0], y: [0, -5, 0] }, { duration: .8 }),
   steam: el => { coffeeSteam(el, 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
   champagne: el => { champagneBubbles(el, 6); particles(el, ['✨','🥂'], 2); return play(el, { y: [0,-12,0], rotate: [0,-17,15,0], scale: [1,1.15,1] }, { duration: .8 }); },
   sushi: el => play(el, { x: [0,-3,5,-3,0], rotate: [0,-11,13,-8,0], y: [0,-6,0] }, { duration: .8 }),

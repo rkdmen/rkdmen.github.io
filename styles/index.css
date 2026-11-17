@@ -159,3 +159,12 @@ html.type-pending .headline { clip-path: inset(0 100% 0 0); }
 html.censoring :is(.emoji:not([data-action="censor"]),.headline,.punctuation,.emoji-actor){filter:blur(6px)}
 /* Behind the content, above the page background. */
 .matrix-rain{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.greeting{display:inline-block;transition:opacity .3s ease,transform .3s ease}
+.greeting.is-swapping{opacity:0;transform:translateY(-3px)}
+.flag{position:relative}
+.flag-base{visibility:hidden}
+.flag-slice{position:absolute;inset:0;padding:inherit;line-height:inherit;text-align:center;white-space:nowrap;animation:flag-wave 1.1s ease-in-out infinite;will-change:transform}
+@keyframes flag-wave{0%,100%{transform:translateY(.04em)}50%{transform:translateY(-.06em)}}
+/* Teardrop: rotated 45deg so the sharp corner points up. */
+.trail-blood{background:#d4111f;border-radius:0 50% 50% 50%}
+@media(prefers-color-scheme:dark){.trail-blood{background:#ff2a3a}}

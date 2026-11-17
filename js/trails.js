@@ -102,6 +102,23 @@ export function champagneBubbles(el, count = 5) {
   }
 }
 
+function drop(x, y) {
+  particle('blood', x, y, rand(4, 8), [
+    { transform: 'translate3d(0,0,0) rotate(45deg) scale(.3)', opacity: .95 },
+    { transform: 'translate3d(0,1px,0) rotate(45deg) scale(1)', opacity: .95, offset: .3 },
+    { transform: `translate3d(0,${rand(18, 46)}px,0) rotate(45deg) scale(.8)`, opacity: 0 }
+  ], rand(900, 1500));
+}
+
+// Drops swell at the bottom edge of the emoji, then fall and fade.
+export function bloodDrops(el, count) {
+  if (!active() || !el?.isConnected) return;
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => drop(r.left + r.width * rand(.2, .8), r.bottom - r.height * .12), i * rand(20, 55));
+  }
+}
+
 function antDot(x,y) {
   particle('ant',x,y,rand(2,4),[
     {transform:'translate3d(0,0,0) scale(1)',opacity:.65},

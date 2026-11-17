@@ -2,7 +2,9 @@ import { behaviors } from './behaviors.js';
 import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
-import { coffeeSteam, idleTrails } from './trails.js';
+import { coffeeSteam, idleTrails, bloodDrops } from './trails.js';
+import { cycleGreeting } from './greeting.js';
+import { waveFlags } from './flags.js';
 import { startStarfield } from './stars.js';
 
 const emojis = [...document.querySelectorAll('.emoji')];
@@ -12,6 +14,7 @@ const golfer = emojis.find(el => el.getAttribute('aria-label') === 'Golfer');
 const heart = emojis.find(el => el.dataset.action === 'heart');
 const noEntry = emojis.find(el => el.dataset.action === 'censor');
 const coffee = emojis.find(el => el.dataset.action === 'steam');
+const adobe = emojis.find(el => el.dataset.action === 'bleed');
 const vehicles = {
   car: emojis.find(el => el.dataset.action === 'drive'),
   plane: emojis.find(el => el.dataset.action === 'fly'),
@@ -54,21 +57,10 @@ function tick() {
   setTimeout(tick, rand(300, 540));
 }
 
-// Signature moments keep their own beat, independent of the random scheduler.
-function repeat(el, min, max) {
-  if (!document.hidden && !surpriseRunning) trigger(el);
-  setTimeout(() => repeat(el, min, max), rand(min, max));
-}
-
-// Gentle coffee steam stays alive independently of movement and click events.
-function ambientSteam() {
-  if (!surpriseRunning && !document.hidden) coffeeSteam(coffee);
-  setTimeout(ambientSteam, rand(1400, 2200));
-}
-
-function ambientTrails() {
-  if (!surpriseRunning && !document.hidden) idleTrails(vehicles);
-  setTimeout(ambientTrails, rand(380, 600));
+// Signature moments and ambient effects keep their own beat, independent of the random scheduler.
+function every(min, max, run) {
+  if (!document.hidden && !surpriseRunning) run();
+  setTimeout(() => every(min, max, run), rand(min, max));
 }
 
 const title = document.querySelector('.headline');
@@ -82,6 +74,9 @@ title?.addEventListener('click', async () => {
   }
 });
 
+cycleGreeting(document.querySelector('.greeting'));
+waveFlags(emojis.filter(el => el.dataset.action === 'flag'));
+
 const whenVisible = () => new Promise(resolve => {
   const onChange = () => {
     if (document.hidden) return;
@@ -94,15 +89,16 @@ const whenVisible = () => new Promise(resolve => {
 
 if (!reducedMotion.matches) {
   whenVisible().then(() => {
-    setTimeout(ambientSteam, 700);
+    setTimeout(() => every(1400, 2200, () => coffeeSteam(coffee)), 700);
     return entrance();
   }).catch(() => {}).finally(() => {
     // Fill the genuinely empty area below the emojis with random ambient starlight.
     setTimeout(startStarfield, 400);
     trigger(choose(drinks));
     setTimeout(tick, 220);
-    setTimeout(() => repeat(heart, 2000, 2800), 750);
-    setTimeout(() => repeat(noEntry, 3500, 5500), 1500);
-    setTimeout(ambientTrails, 300);
+    setTimeout(() => every(2000, 2800, () => trigger(heart)), 750);
+    setTimeout(() => every(3500, 5500, () => trigger(noEntry)), 1500);
+    setTimeout(() => every(380, 600, () => idleTrails(vehicles)), 300);
+    setTimeout(() => every(900, 1700, () => bloodDrops(adobe, 1)), 1100);
   });
 }

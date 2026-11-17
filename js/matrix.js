@@ -4,7 +4,7 @@ const glyphs = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅ�
 const pick = () => glyphs[Math.floor(Math.random() * glyphs.length)];
 const SIZE = 15;
 const STEP_MS = 45;
-const RAIN_MS = 2200;
+const RAIN_MS = 3200;
 const FADE_MS = 500;
 
 // Falling code drawn behind the page content; resolves once it has faded away.
