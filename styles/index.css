@@ -8,8 +8,8 @@ h1{font-size:clamp(29px,5vw,40px);font-weight:700;letter-spacing:-.055em;line-he
 .emoji-line{display:block;width:max-content;min-height:1.48em;white-space:nowrap}
 .mobile-break{display:none}
 .mood{padding-left:4.9em}
-.emoji{font:inherit;color:inherit;line-height:1.4;padding:0 1px;border:none;border-radius:7px;background:none;cursor:pointer;display:inline-block;vertical-align:baseline;transform-origin:center center;touch-action:manipulation;user-select:none;-webkit-user-select:none;will-change:transform}
-.emoji:hover{background:#f5f5f5}
+.emoji{font:inherit;color:inherit;line-height:1.4;padding:0 1px;border:none;border-radius:0;background:transparent;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;cursor:pointer;display:inline-block;vertical-align:baseline;transform-origin:center center;touch-action:manipulation;user-select:none;-webkit-user-select:none;will-change:transform}
+.emoji:hover,.emoji:active,.emoji:focus{background:transparent;box-shadow:none}
 .emoji[aria-label="Golfer"]{font-size:1.15em;transform-origin:center bottom}
 .emoji:focus-visible,.headline:focus-visible{outline:2px solid #3478f6;outline-offset:4px}
 .text-emoji{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:-.09em}
@@ -19,7 +19,7 @@ h1{font-size:clamp(29px,5vw,40px);font-weight:700;letter-spacing:-.055em;line-he
 .snow-particle{position:fixed;z-index:14;display:block;border-radius:50%;background:#fff;border:1px solid rgba(135,160,185,.32);box-shadow:0 0 5px rgba(135,175,205,.4);pointer-events:none;will-change:transform,opacity}
 @media(min-width:1000px){.page{padding-left:0}}
 @media(max-width:580px){.page{padding:10px 12px 9px}.mobile-break{display:block;height:0}h1{font-size:clamp(27px,8vw,34px)}.emoji-lines{line-height:1.38}.emoji-line{min-height:1.38em}}
-@media(prefers-color-scheme:dark){:root{color:#f5f5f5;background:#0b0e13}.emoji:hover{background:rgba(255,255,255,.1)}}
+@media(prefers-color-scheme:dark){:root{color:#f5f5f5;background:#0b0e13}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media(prefers-reduced-motion:no-preference){.emoji:hover{filter:saturate(1.22)}}
 
