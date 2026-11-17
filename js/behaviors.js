@@ -1,5 +1,7 @@
 import { play, travel, passThrough, choose, particles } from './engine.js';
 import { matrixRain } from './matrix.js';
+import { decodeHeadline } from './decode.js';
+import { launchRocket } from './rocket.js';
 import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
@@ -10,13 +12,14 @@ const blurSelf = el => el.animate([
   { filter: 'blur(6px)', offset: .9, easing: 'ease-in' },
   { filter: 'blur(0)' }
 ], { duration: 1900 }).finished;
-// Everything except the tapped 🔞 goes out of focus; the blur itself is in CSS.
-const blurOthers = () => {
+// Puts a class on <html> for a while; the look for each mode lives in CSS.
+const pageMode = (name, ms) => {
   const root = document.documentElement;
-  root.classList.add('censoring');
-  return new Promise(resolve => setTimeout(resolve, 1500)).then(() => root.classList.remove('censoring'));
+  root.classList.add(name);
+  return new Promise(resolve => setTimeout(resolve, ms)).then(() => root.classList.remove(name));
 };
 const typing = el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { duration: .55 });
+const earthBob = el => play(el, { y: [0,-5,0], scale: [1,1.13,1] }, { duration: 1.2 });
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
 // Loop-the-loop that starts and ends at rest position.
@@ -72,7 +75,7 @@ export const behaviors = {
   devil: (el) => { particles(el, ['😈','🔥'], 3); return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 }); },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
   no: el => { particles(el, ['🔥'], 3); return shake(el); },
-  censor: (el, ctx) => (ctx.clicked ? blurOthers() : blurSelf(el)),
+  censor: (el, ctx) => (ctx.clicked ? pageMode('censoring', 1500) : blurSelf(el)),
   cheers: (el, ctx) => toast(ctx.drinks, el),
   wine: (el, ctx) => toast(ctx.drinks, el),
   sway: (el, ctx) => toast(ctx.drinks, el),
@@ -86,7 +89,7 @@ export const behaviors = {
   egg: el => play(el, { y: [0,-15,-18,0], rotate: [0,-20,175,360] }, { duration: 1.0 }),
   croissant: el => play(el, { y: [0,-8,0], rotate: [0,-28,24,0] }, { duration: .8 }),
   bounce: bump,
-  code: typing,
+  code: (el, ctx) => (ctx.clicked ? Promise.all([decodeHeadline(document.querySelector('.headline')), typing(el)]) : typing(el)),
   matrix: (el, ctx) => (ctx.clicked ? Promise.all([matrixRain(), typing(el)]) : typing(el)),
   buzz: el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 }),
   drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
@@ -118,11 +121,14 @@ export const behaviors = {
   },
   spin: el => play(el, { y: [0,-5,0], scale: [1,1.1,1] }, { duration: .75 }),
   kick: (_el, ctx) => golfShot(ctx),
-  golf: (el, ctx) => el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 }),
+  golf: (el, ctx) => {
+    if (ctx.clicked) pageMode('on-green', 2200);
+    return el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 });
+  },
   ski: (el, ctx) => passThrough(el, { dx: 44, dy: 10, duration: ctx.clicked ? 1.6 : 1.35, onMove: snowTrail() }),
   shuffle: (el, ctx) => { ctx.trigger(choose(ctx.emojis)); return play(el, { rotate: [0,180,360] }, { duration: .62 }); },
   wave: el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 }),
   heart: el => play(el, { scale: [1,1.28,.96,1.34,.96,1.12,1], y: [0,-7,0,-10,0,-3,0] }, { duration: .82 }),
   fly: (el, ctx) => travel(el, loop(ctx.clicked ? 34 : 24), { duration: ctx.clicked ? 1.7 : 1.4, onMove: cloudTrail() }),
-  earth: el => play(el, { y: [0,-5,0], scale: [1,1.13,1] }, { duration: 1.2 })
+  earth: (el, ctx) => (ctx.clicked ? Promise.all([launchRocket(el), earthBob(el)]) : earthBob(el))
 };

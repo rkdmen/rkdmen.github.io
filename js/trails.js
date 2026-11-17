@@ -70,6 +70,16 @@ export const snowTrail = () => trail(80, snowTail, snow);
 export const cloudTrail = () => trail(110, (_rect, previous) => previous, cloud);
 export const exhaustTrail = () => trail(90, exhaustPipe, exhaust);
 
+function rocketSmoke(x, y) {
+  particle('rocket', x, y, rand(7, 13), [
+    { transform: 'translate3d(0,0,0) scale(.5)', opacity: .75 },
+    { transform: `translate3d(${rand(-10,10)}px,${rand(-10,6)}px,0) scale(${rand(2, 3.2)})`, opacity: 0 }
+  ], rand(900, 1500));
+}
+
+// Rects passed here are the tail point itself.
+export const rocketTrail = () => trail(26, (_rect, _previous, center) => center, rocketSmoke);
+
 const parked = el => el?.isConnected && getComputedStyle(el).visibility !== 'hidden';
 
 // A light trail for vehicles sitting in their slots; moving ones are covered by their own trail.

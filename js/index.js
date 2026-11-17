@@ -35,7 +35,9 @@ function participants(el) {
 function trigger(el, clicked = false) {
   if (!el || document.hidden || reducedMotion.matches || surpriseRunning) return;
   const group = participants(el);
-  if (group.some(item => !item || busy.has(item))) return;
+  if (group.some(item => !item)) return;
+  // Taps always run; only the idle scheduler waits for an emoji to finish.
+  if (!clicked && group.some(item => busy.has(item))) return;
   if (!clicked && performance.now() - (lastRun.get(el) || 0) < 1100) return;
   const behavior = behaviors[el.dataset.action];
   if (!behavior) return;

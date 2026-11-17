@@ -168,3 +168,12 @@ html.censoring :is(.emoji:not([data-action="censor"]),.headline,.punctuation,.em
 /* Teardrop: rotated 45deg so the sharp corner points up. */
 .trail-blood{background:#d4111f;border-radius:0 50% 50% 50%}
 @media(prefers-color-scheme:dark){.trail-blood{background:#ff2a3a}}
+.rocket{position:fixed;z-index:16;line-height:1;pointer-events:none;will-change:transform,opacity}
+.trail-rocket{background:rgba(205,210,218,.7);filter:blur(.6px)}
+@media(prefers-color-scheme:dark){.trail-rocket{background:rgba(225,230,238,.6)}}
+.headline.is-decoding{color:#12994a}
+.headline.is-decoding::after{animation:none;opacity:0}
+@media(prefers-color-scheme:dark){.headline.is-decoding{color:#3dff7a}}
+:root{transition:background-color .6s ease}
+html.on-green{background:#4c9a4f}
+@media(prefers-color-scheme:dark){html.on-green{background:#1d5a22}}
