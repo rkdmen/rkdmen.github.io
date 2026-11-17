@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0b0e13" media="(prefers-color-scheme: dark)" />
   <meta name="description" content="I enjoy everything. A tiny interactive corner of the internet." />
@@ -11,21 +11,16 @@
   <title>I enjoy everything. ✨</title>
   <link rel="icon" href="./assets/favicon.ico" />
   <link rel="stylesheet" href="./styles/index.css" />
-  <!-- Google Analytics (existing property) -->
+  <!-- GA4 and Sentry retained from the original site -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-JS8ZFKP3ZF"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag("js", new Date());
-    gtag("config", "G-JS8ZFKP3ZF");
-  </script>
-  <!-- Sentry (existing project) -->
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());gtag("config","G-JS8ZFKP3ZF");</script>
   <script src="https://js.sentry-cdn.com/99a8b7e6470f4fc6b6be215c0af3a5d6.min.js" crossorigin="anonymous"></script>
+  <script defer src="./js/layout.js"></script>
   <script type="module" src="./js/index.js"></script>
 </head>
 <body>
   <main class="page" aria-label="A playful introduction">
-    <h1>I enjoy everything<span class="period" role="button" tabindex="0" aria-label="A little surprise">.</span></h1>
+    <h1><button class="headline" type="button" aria-label="I enjoy everything. Surprise me">I enjoy everything.</button></h1>
     <div class="emoji-lines" aria-label="Some of my favorite things">
       <div class="emoji-line mood" aria-label="My mood">
         <button class="emoji" data-action="rock" aria-label="Rock on">🤟🏻</button><button class="emoji" data-action="devil" aria-label="Mischief">😈</button><button class="emoji" data-action="look" aria-label="Looking around">ᕗ</button>
@@ -34,7 +29,7 @@
         <button class="emoji" data-action="no" aria-label="No smoking">🚭</button><button class="emoji" data-action="cheers" aria-label="Whiskey">🥃</button><button class="emoji" data-action="pop" aria-label="Champagne">🍾</button><button class="emoji" data-action="cheers" aria-label="Cheers">🥂</button><button class="emoji" data-action="wine" aria-label="Wine">🍷</button><button class="emoji" data-action="sway" aria-label="Sake">🍶</button><button class="emoji" data-action="sway" aria-label="Cocktail">🍸</button><button class="emoji" data-action="steam" aria-label="Coffee">☕</button><button class="emoji" data-action="bounce" aria-label="Sushi">🍣</button><button class="emoji" data-action="bounce" aria-label="Steak">🥩</button><button class="emoji" data-action="bounce" aria-label="Breakfast">🍳</button><button class="emoji" data-action="bounce" aria-label="Croissant">🥐</button><span class="punctuation">.</span>
       </div>
       <div class="emoji-line" aria-label="Tech, hobbies, and stuff">
-        <button class="emoji" data-action="pop" aria-label="Apple"></button><button class="emoji" data-action="code" aria-label="Coding">👨🏻‍💻</button><button class="emoji text-emoji" data-action="code" aria-label="Code">&lt;{💻}/&gt;</button><button class="emoji" data-action="buzz" aria-label="Phone">📱</button><button class="emoji" data-action="drive" aria-label="Car">🚗</button><button class="emoji" data-action="bounce" aria-label="Shoes">👞</button><button class="emoji" data-action="charge" aria-label="Bull">🐂</button><button class="emoji" data-action="pop" aria-label="Adobe">🅰️</button><span class="punctuation">. </span><button class="emoji" data-action="crawl" aria-label="Ant">🐜</button><button class="emoji" data-action="grow" aria-label="Stocks">📈</button><button class="emoji" data-action="spin" aria-label="Moon">🌑</button><button class="emoji" data-action="kick" aria-label="Soccer">⚽</button><button class="emoji" data-action="golf" aria-label="Golfer">🏌🏻‍♂️</button><button class="emoji" data-action="golf" aria-label="Golf">⛳</button><button class="emoji" data-action="ski" aria-label="Snowboarding">🏂</button><span class="punctuation">.</span>
+        <button class="emoji" data-action="pop" aria-label="Apple"></button><button class="emoji" data-action="code" aria-label="Coding">👨🏻‍💻</button><button class="emoji text-emoji" data-action="code" aria-label="Code">&lt;{💻}/&gt;</button><button class="emoji" data-action="buzz" aria-label="Phone">📱</button><button class="emoji" data-action="drive" aria-label="Car">🚗</button><button class="emoji" data-action="bounce" aria-label="Shoes">👞</button><button class="emoji" data-action="charge" aria-label="Bull">🐂</button><button class="emoji" data-action="pop" aria-label="Adobe">🅰️</button><span class="mobile-break" aria-hidden="true"></span><span class="punctuation">. </span><button class="emoji" data-action="crawl" aria-label="Ant">🐜</button><button class="emoji" data-action="grow" aria-label="Stocks">📈</button><button class="emoji" data-action="spin" aria-label="Moon">🌑</button><button class="emoji" data-action="kick" aria-label="Soccer">⚽</button><button class="emoji" data-action="golf" aria-label="Golfer">🏌🏻‍♂️</button><button class="emoji" data-action="golf" aria-label="Golf">⛳</button><button class="emoji" data-action="ski" aria-label="Snowboarding">🏂</button><span class="punctuation">.</span>
       </div>
       <div class="emoji-line" aria-label="A little about me">
         <button class="emoji" data-action="shuffle" aria-label="Shuffle">🔀</button><span class="punctuation"> @ #</span><button class="emoji" data-action="pop" aria-label="Korea">🇰🇷</button><span class="punctuation"> #</span><button class="emoji" data-action="pop" aria-label="United States">🇺🇸</button><span class="punctuation"> ⟿ </span><button class="emoji" data-action="pop" aria-label="New York">🗽</button><span class="punctuation">.</span>

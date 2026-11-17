@@ -1,4 +1,4 @@
-import { play, travel, rand, choose, particles } from './engine.js';
+import { play, travel, choose, particles } from './engine.js';
 
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
@@ -8,14 +8,56 @@ const loop = radius => Array.from({ length: 9 }, (_, i) => {
   return [radius * Math.sin(angle), -radius * (1 - Math.cos(angle)), -45 * i];
 });
 
-// Drink group owns shared interactions. Can be called by any glass or by idle scheduler.
-export function toast(drinks) {
-  const picked = drinks.length >= 2 ? [...drinks].sort(() => Math.random() - .5).slice(0, 2) : drinks;
-  picked.forEach((el, i) => {
-    const direction = i ? -1 : 1;
-    play(el, { x: [0, 11 * direction, 11 * direction, 0], y: [0, -12, -14, 0], rotate: [0, 17 * direction, -8 * direction, 0] }, { duration: .68 });
+// A coordinated scene. The golfer grows, swings, and sends the nearby ball flying.
+export async function golfShot(ctx) {
+  const ball = ctx.emojis.find(el => el.dataset.action === 'kick');
+  const golfer = ctx.emojis.find(el => el.getAttribute('aria-label') === 'Golfer');
+  if (!ball || !golfer) return;
+  const swing = play(golfer, {
+    scale: [1, 1.20, 1.48, 1.52, 1.24, 1],
+    rotate: [0, -12, -29, 27, -8, 0],
+    y: [0, -3, -10, -8, 0, 0]
+  }, { duration: 1.18 });
+  await new Promise(resolve => setTimeout(resolve, 340));
+  const ballFlight = travel(ball, [
+    [0, 0, 0], [-15, -19, -75], [-48, -53, -205],
+    [-94, -28, -380], [-55, 0, -540], [0, 0, -720]
+  ], { duration: 1.18 });
+  return Promise.all([swing, ballFlight]);
+}
+
+// Toast only the closest neighbor, using actual emoji coordinates.
+export function toast(drinks, anchor = choose(drinks)) {
+  if (!anchor || drinks.length < 2) return Promise.resolve();
+  const center = el => { const r = el.getBoundingClientRect(); return r.left + r.width / 2; };
+  const partner = drinks.filter(el => el !== anchor)
+    .sort((a, b) => Math.abs(center(a) - center(anchor)) - Math.abs(center(b) - center(anchor)))[0];
+  const a = anchor.getBoundingClientRect();
+  const b = partner.getBoundingClientRect();
+  const dx = center(partner) - center(anchor);
+  const direction = Math.sign(dx) || 1;
+  const movement = Math.max(3, (Math.abs(dx) - (a.width + b.width) * .5) / 2 + 3);
+  const first = play(anchor, {
+    x: [0, direction * movement, direction * movement, 0],
+    y: [0, -10, -12, 0], rotate: [0, direction * 15, -direction * 7, 0]
+  }, { duration: .68 });
+  const second = play(partner, {
+    x: [0, -direction * movement, -direction * movement, 0],
+    y: [0, -10, -12, 0], rotate: [0, -direction * 15, direction * 7, 0]
+  }, { duration: .68 });
+  particles(anchor, ['✨', '🥂'], 3);
+  return Promise.all([first, second]);
+}
+
+// Touch the title to start a fast stadium wave and tiny emoji confetti.
+export function surprise(title, emojis) {
+  particles(title, ['✨', '🍷', '⚽', '❤️', '✈️', '⛳'], 12);
+  play(title, { scale: [1, 1.04, 1], rotate: [0, -1.5, 1.5, 0] }, { duration: .65 });
+  emojis.forEach((el, i) => {
+    setTimeout(() => play(el, {
+      y: [0, -16, 0], scale: [1, 1.19, 1]
+    }, { duration: .45 }), i * 38);
   });
-  if (picked.length > 1) particles(picked[0], ['✨', '🥂'], 3);
 }
 
 // Same entries handle both idle activity and taps; taps are deliberately bigger.
@@ -24,9 +66,9 @@ export const behaviors = {
   devil: (el) => { particles(el, ['😈','🔥'], 3); return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 }); },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
   no: el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 }),
-  cheers: (el, ctx) => toast(ctx.drinks),
-  wine: (el, ctx) => toast(ctx.drinks),
-  sway: (el, ctx) => toast(ctx.drinks),
+  cheers: (el, ctx) => toast(ctx.drinks, el),
+  wine: (el, ctx) => toast(ctx.drinks, el),
+  sway: (el, ctx) => toast(ctx.drinks, el),
   pop: el => { particles(el); return bump(el); },
   steam: el => { particles(el, ['☁️','♨️'], 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
   bounce: bump,
@@ -37,8 +79,8 @@ export const behaviors = {
   crawl: el => travel(el, [[0,0],[14,-2,-4],[28,0,6],[0,0]], { duration: 1.3 }),
   grow: el => play(el, { y: [0,-23,0], scale: [1,1.28,1] }, { duration: .62 }),
   spin: el => play(el, { rotate: [0,360] }, { duration: .82 }),
-  kick: (el, ctx) => travel(el, [[0,0,0],[14,-20,90],[32,-31,180],[49,-9,350],[64,0,480],[78,-14,570],[0,0,720]], { duration: ctx.clicked ? 1.6 : 1.3 }),
-  golf: el => { particles(el, ['⛳','🏌️','✨'], 3); return play(el, { rotate: [0,-23,22,0], y: [0,-11,0] }, { duration: .7 }); },
+  kick: (_el, ctx) => golfShot(ctx),
+  golf: (el, ctx) => el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 }),
   ski: (el, ctx) => travel(el, [[0,0,0],[20,-14,-12],[44,-22,-4],[66,-8,10],[84,4,4],[0,0,0]], { duration: ctx.clicked ? 1.8 : 1.5 }),
   shuffle: (el, ctx) => { ctx.trigger(choose(ctx.emojis)); return play(el, { rotate: [0,180,360] }, { duration: .62 }); },
   wave: el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 }),

@@ -73,8 +73,8 @@ export async function glide(el, points, { duration, ease, onMove }) {
     ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg) scale(${scale})`;
     onMove?.(ghost);
   };
-  place(0);
   document.body.append(ghost);
+  place(0);
   el.style.visibility = 'hidden';
   try {
     await new Promise(resolve => {
