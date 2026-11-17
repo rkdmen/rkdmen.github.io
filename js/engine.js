@@ -70,7 +70,8 @@ function copyEmojiContent(source, actor) {
 
 // Moves a text-only stand-in along the path; the real button keeps its place in the row.
 const gliding = new WeakSet();
-export async function glide(el, points, { duration, ease, onMove }) {
+// `at` maps progress 0..1 to [x, y, rotate, scale, opacity].
+export async function glide(el, at, { duration, ease, onMove }) {
   if (reducedMotion.matches || !el || gliding.has(el)) return;
   gliding.add(el);
   const r = el.getBoundingClientRect();
@@ -85,11 +86,12 @@ export async function glide(el, points, { duration, ease, onMove }) {
     fontSize: computed.fontSize, fontFamily: computed.fontFamily,
     fontWeight: computed.fontWeight, letterSpacing: computed.letterSpacing
   });
-  const at = pathSampler(points.map(([x, y, rotate = 0, scale = 1]) => [x, y, rotate, scale]));
   const place = u => {
-    const [x, y, rotate, scale] = at(u);
+    const [x, y, rotate, scale, rawOpacity] = at(u);
+    const opacity = Math.min(1, Math.max(0, rawOpacity));
     ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg) scale(${scale})`;
-    onMove?.({ x: r.left + x, y: r.top + y, width: r.width, height: r.height });
+    ghost.style.opacity = opacity;
+    onMove?.({ x: r.left + x, y: r.top + y, width: r.width, height: r.height, opacity });
   };
   document.body.append(ghost);
   alignSpin();
@@ -203,7 +205,7 @@ export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll =
     // Slight banking follows the turns but never snaps to a new angle.
     const rotation = roll * Math.sin(2 * Math.PI * u) * Math.sin(Math.PI * u);
     ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
-    onMove?.({ x: rect.left + x, y: rect.top + y, width: rect.width, height: rect.height });
+    onMove?.({ x: rect.left + x, y: rect.top + y, width: rect.width, height: rect.height, opacity: 1 });
   };
   document.body.append(ghost);
   alignSpin();
@@ -228,12 +230,21 @@ export function travel(el, points, { duration, onMove } = {}) {
   if (!bounds || !el) return Promise.resolve();
   const r = el.getBoundingClientRect();
   const inset = 2;
-  const fit = (room, reach) => (reach > room ? Math.max(room, 0) / reach : 1);
+  const fit = (room, reach) => (reach > Math.max(room, 0) ? Math.max(room, 0) / reach : 1);
   const xs = points.map(p => p[0]);
   const ys = points.map(p => p[1]);
   const kx = Math.min(fit(bounds.right - inset - r.right, Math.max(...xs)), fit(r.left - bounds.left - inset, -Math.min(...xs)));
   const ky = Math.min(fit(bounds.bottom - inset - r.bottom, Math.max(...ys)), fit(r.top - bounds.top - inset, -Math.min(...ys)));
-  return glide(el, points.map(([x, y, ...rest]) => [x * kx, y * ky, ...rest]), { duration, ease: easeInOut, onMove });
+  const fitted = points.map(([x, y, rotate = 0, scale = 1]) => [x * kx, y * ky, rotate, scale, 1]);
+  return glide(el, pathSampler(fitted), { duration, ease: easeInOut, onMove });
+}
+
+// Leaves forward to (dx, dy) while fading, then re-enters from (-dx, -dy), so it never reverses.
+export function passThrough(el, { dx, dy, duration, onMove }) {
+  const leave = pathSampler([[0, 0, 0, 1, 1], [dx * .55, dy * .55, 0, 1, 1], [dx, dy, 0, 1, 0]]);
+  const enter = pathSampler([[-dx, -dy, 0, 1, 0], [-dx * .55, -dy * .55, 0, 1, 1], [0, 0, 0, 1, 1]]);
+  const at = u => (u < .5 ? leave(u * 2) : enter(u * 2 - 1));
+  return glide(el, at, { duration, ease: easeInOut, onMove });
 }
 export function particles(el, chars = ['✦','✨'], count = 4) {
   if (reducedMotion.matches) return;

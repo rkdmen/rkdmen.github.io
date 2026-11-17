@@ -2,7 +2,7 @@ import { behaviors } from './behaviors.js';
 import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
-import { coffeeSteam } from './trails.js';
+import { coffeeSteam, idleTrails } from './trails.js';
 import { startStarfield } from './stars.js';
 
 const emojis = [...document.querySelectorAll('.emoji')];
@@ -11,6 +11,11 @@ const ball = emojis.find(el => el.dataset.action === 'kick');
 const golfer = emojis.find(el => el.getAttribute('aria-label') === 'Golfer');
 const heart = emojis.find(el => el.dataset.action === 'heart');
 const coffee = emojis.find(el => el.dataset.action === 'steam');
+const vehicles = {
+  car: emojis.find(el => el.dataset.action === 'drive'),
+  plane: emojis.find(el => el.dataset.action === 'fly'),
+  board: emojis.find(el => el.dataset.action === 'ski')
+};
 const busy = new WeakSet();
 const lastRun = new WeakMap();
 const highlights = ['fly', 'ski', 'kick', 'drive', 'heart', 'cheers', 'wine'];
@@ -60,6 +65,11 @@ function ambientSteam() {
   setTimeout(ambientSteam, rand(1650, 2600));
 }
 
+function ambientTrails() {
+  if (!surpriseRunning && !document.hidden) idleTrails(vehicles);
+  setTimeout(ambientTrails, rand(380, 600));
+}
+
 const title = document.querySelector('.headline');
 title?.addEventListener('click', async () => {
   if (surpriseRunning || reducedMotion.matches) return;
@@ -91,5 +101,6 @@ if (!reducedMotion.matches) {
     trigger(choose(drinks));
     setTimeout(tick, 220);
     setTimeout(heartbeat, 750);
+    setTimeout(ambientTrails, 300);
   });
 }

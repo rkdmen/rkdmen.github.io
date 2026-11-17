@@ -155,3 +155,5 @@ html.type-pending .headline { clip-path: inset(0 100% 0 0); }
 .emoji[data-action="coin"] { perspective:200px; }
 .trail-ant { background:rgba(111,75,46,.60); }
 @media(prefers-color-scheme:dark){.trail-ant{background:rgba(233,193,130,.64)}}
+.emoji,.headline,.punctuation,.emoji-actor{transition:filter .25s ease}
+html.censoring :is(.emoji:not([data-action="censor"]),.headline,.punctuation,.emoji-actor){filter:blur(6px)}

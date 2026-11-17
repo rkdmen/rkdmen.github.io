@@ -1,6 +1,20 @@
-import { play, travel, choose, particles } from './engine.js';
+import { play, travel, passThrough, choose, particles } from './engine.js';
 import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail } from './trails.js';
 
+const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
+// Blurred for about 1.5s between the fades.
+const blurSelf = el => el.animate([
+  { filter: 'blur(0)', easing: 'ease-out' },
+  { filter: 'blur(6px)', offset: .1 },
+  { filter: 'blur(6px)', offset: .9, easing: 'ease-in' },
+  { filter: 'blur(0)' }
+], { duration: 1900 }).finished;
+// Everything except the tapped 🔞 goes out of focus; the blur itself is in CSS.
+const blurOthers = () => {
+  const root = document.documentElement;
+  root.classList.add('censoring');
+  return new Promise(resolve => setTimeout(resolve, 1500)).then(() => root.classList.remove('censoring'));
+};
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
 // Loop-the-loop that starts and ends at rest position.
@@ -55,7 +69,8 @@ export const behaviors = {
   rock: (el, ctx) => play(el, { rotate: [0, -24, 22, -16, 0], scale: [1, 1.22, 1] }, { duration: .6 }),
   devil: (el) => { particles(el, ['😈','🔥'], 3); return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 }); },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
-  no: el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 }),
+  no: shake,
+  censor: (el, ctx) => (ctx.clicked ? blurOthers() : blurSelf(el)),
   cheers: (el, ctx) => toast(ctx.drinks, el),
   wine: (el, ctx) => toast(ctx.drinks, el),
   sway: (el, ctx) => toast(ctx.drinks, el),
@@ -69,7 +84,7 @@ export const behaviors = {
   bounce: bump,
   code: el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { duration: .55 }),
   buzz: el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 }),
-  drive: (el, ctx) => travel(el, [[0,0],[65,-1],[0,0]], { duration: ctx.clicked ? 1.4 : 1.1, onMove: exhaustTrail() }),
+  drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
   charge: el => travel(el, [[0,0],[-13,0],[55,0],[0,0]], { duration: 1.1 }),
   crawl: (el, ctx) => {
     if (ctx.clicked) particles(el, ['🍪','✦'], 3);
@@ -98,7 +113,7 @@ export const behaviors = {
   spin: el => play(el, { y: [0,-5,0], scale: [1,1.1,1] }, { duration: .75 }),
   kick: (_el, ctx) => golfShot(ctx),
   golf: (el, ctx) => el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 }),
-  ski: (el, ctx) => travel(el, [[0,0,0],[20,-14,-12],[44,-22,-4],[66,-8,10],[84,4,4],[0,0,0]], { duration: ctx.clicked ? 1.8 : 1.5, onMove: snowTrail() }),
+  ski: (el, ctx) => passThrough(el, { dx: 44, dy: 10, duration: ctx.clicked ? 1.6 : 1.35, onMove: snowTrail() }),
   shuffle: (el, ctx) => { ctx.trigger(choose(ctx.emojis)); return play(el, { rotate: [0,180,360] }, { duration: .62 }); },
   wave: el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 }),
   heart: el => play(el, { scale: [1,1.28,.96,1.34,.96,1.12,1], y: [0,-7,0,-10,0,-3,0] }, { duration: .82 }),

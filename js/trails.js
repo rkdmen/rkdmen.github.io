@@ -45,31 +45,41 @@ function steam(x, y) {
   ], rand(1300, 1800));
 }
 
-// Each moving actor gets its own throttle and last position. No frame-by-frame layout reads.
-function trail(interval, threshold, getPosition, emit) {
-  let previous = null, last = 0;
+// Each moving actor gets its own beat, starting on its first frame. No frame-by-frame layout reads.
+function trail(interval, getPosition, emit) {
+  let previous = null, last = -Infinity;
   return rect => {
-    if (!active() || !rect) return;
+    if (!active() || !rect || rect.opacity < .5) return;
     const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-    if (!previous) { previous = center; last = performance.now(); return; }
     const now = performance.now();
-    if (now - last < interval || Math.hypot(center.x - previous.x, center.y - previous.y) < threshold) return;
-    const at = getPosition(rect, previous, center);
+    if (now - last < interval) return;
+    const at = getPosition(rect, previous ?? center, center);
     emit(at.x, at.y);
     previous = center;
     last = now;
   };
 }
 
-export const snowTrail = () => trail(95, 3, rect =>
-  ({ x: rect.x + rect.width * .22, y: rect.y + rect.height * .86 }), snow);
-
-export const cloudTrail = () => trail(135, 4, (_rect, previous) =>
-  ({ x: previous.x, y: previous.y }), cloud);
-
+const snowTail = rect => ({ x: rect.x + rect.width * .22, y: rect.y + rect.height * .86 });
+// The plane points up and right, so its tail is bottom left.
+const planeTail = rect => ({ x: rect.x + rect.width * .15, y: rect.y + rect.height * .8 });
 // The red car faces left; the rear exhaust is on its right side.
-export const exhaustTrail = () => trail(115, 3, rect =>
-  ({ x: rect.x + rect.width * .87, y: rect.y + rect.height * .66 }), exhaust);
+const exhaustPipe = rect => ({ x: rect.x + rect.width * .87, y: rect.y + rect.height * .66 });
+
+export const snowTrail = () => trail(80, snowTail, snow);
+export const cloudTrail = () => trail(110, (_rect, previous) => previous, cloud);
+export const exhaustTrail = () => trail(90, exhaustPipe, exhaust);
+
+const parked = el => el?.isConnected && getComputedStyle(el).visibility !== 'hidden';
+
+// A light trail for vehicles sitting in their slots; moving ones are covered by their own trail.
+export function idleTrails({ car, plane, board }) {
+  if (!active()) return;
+  const at = (el, tail) => tail(el.getBoundingClientRect());
+  if (parked(car)) { const p = at(car, exhaustPipe); exhaust(p.x, p.y); }
+  if (parked(plane)) { const p = at(plane, planeTail); cloud(p.x, p.y); }
+  if (parked(board)) { const p = at(board, snowTail); snow(p.x, p.y); }
+}
 
 export function coffeeSteam(el, count = 1) {
   if (!active() || !el?.isConnected) return;
@@ -98,5 +108,5 @@ function antDot(x,y) {
     {transform:'translate3d(0,-4px,0) scale(.1)',opacity:0}
   ],rand(500,850));
 }
-export const antTrail = () => trail(85,2,rect=>
+export const antTrail = () => trail(85,rect=>
   ({x:rect.x+rect.width*.18,y:rect.y+rect.height*.76}),antDot);
