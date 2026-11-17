@@ -1,4 +1,5 @@
-import { behaviors, surprise } from './behaviors.js';
+import { behaviors } from './behaviors.js';
+import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
 
