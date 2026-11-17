@@ -4,8 +4,8 @@ import { decodeHeadline } from './decode.js';
 import { launchRocket } from './rocket.js';
 import { checkmate } from './gravity.js';
 import {
-  snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops,
-  crumbs, notifyBadge, speechBubble, footsteps, floatUp, fireworks
+  snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops, bloodFlood,
+  crumbs, notifyBadge, speechBubble, footsteps, floatUp, fireworks, moneyRain
 } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
@@ -30,6 +30,36 @@ const buzzShake = el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { d
 const waveHand = el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 });
 const moonBob = el => play(el, { y: [0,-5,0], scale: [1,1.1,1] }, { duration: .75 });
 const rockOn = el => play(el, { rotate: [0, -24, 22, -16, 0], scale: [1, 1.22, 1] }, { duration: .6 });
+
+// Decorative market pulse, no data or price signal.
+const marketPulse = el => {
+  particles(el, ['↗', '✦'], 3);
+  return play(el, {
+    y: [0,-9,5,-23,-12,0],
+    x: [0,3,-2,5,0,0],
+    rotate: [0,-7,5,-8,3,0],
+    scale: [1,1.1,.92,1.32,1.13,1]
+  }, { duration: .88 });
+};
+
+const ROW_SHAKE = [0, -4, 4, -3, 2, 0].map((x, i) => ({ transform: `translate(${x}px, ${i % 2 ? 2 : -1}px)` }));
+
+// The chart flips to 📉 and plunges while the rows shake and money falls off the screen.
+async function stockCrash(el) {
+  el.textContent = '📉';
+  moneyRain(el, 16);
+  pageMode('crashing', 700);
+  document.querySelector('.emoji-lines')?.animate(ROW_SHAKE, { duration: 450 });
+  try {
+    await play(el, {
+      y: [0, -6, 26, 18, 22, 0],
+      rotate: [0, -8, 24, 14, 20, 0],
+      scale: [1, 1.1, 1.25, 1.15, 1.2, 1]
+    }, { duration: 1.8, times: [0, .08, .3, .5, .75, 1] });
+  } finally {
+    el.textContent = '📈';
+  }
+}
 
 const PHASES = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌑'];
 // Steps the inner glyph through the lunar cycle; its spin pauses so the lit side reads correctly.
@@ -151,7 +181,11 @@ export const behaviors = {
   wine: (el, ctx) => toast(ctx.drinks, el),
   sway: (el, ctx) => toast(ctx.drinks, el),
   pop: sparkleBump,
-  bleed: (el, ctx) => { bloodDrops(el, ctx.clicked ? 22 : 3); return play(el, { y: [0, -4, 0], scale: [1, 1.1, 1] }, { duration: .5 }); },
+  bleed: (el, ctx) => {
+    bloodDrops(el, ctx.clicked ? 22 : 3);
+    const throb = play(el, { y: [0, -4, 0], scale: [1, 1.1, 1] }, { duration: .5 });
+    return ctx.clicked ? Promise.all([bloodFlood(), throb]) : throb;
+  },
   flag: el => play(el, { rotate: [0, -10, 7, -4, 0], y: [0, -5, 0] }, { duration: .8 }),
   steam: el => { coffeeSteam(el, 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
   champagne: el => { champagneBubbles(el, 6); particles(el, ['✨','🥂'], 2); return play(el, { y: [0,-12,0], rotate: [0,-17,15,0], scale: [1,1.15,1] }, { duration: .8 }); },
@@ -184,16 +218,7 @@ export const behaviors = {
       duration: ctx.clicked ? 2.0 : 1.5, onMove: antTrail()
     });
   },
-  grow: (el, ctx) => {
-    // Decorative market pulse, no data or price signal.
-    particles(el, ctx.clicked ? ['↗','✦','↘','✨'] : ['↗','✦'], ctx.clicked ? 6 : 3);
-    return play(el, {
-      y: [0,-9,5,-23,-12,0],
-      x: [0,3,-2,5,0,0],
-      rotate: [0,-7,5,-8,3,0],
-      scale: [1,1.1,.92,1.32,1.13,1]
-    }, { duration: ctx.clicked ? 1.18 : .88 });
-  },
+  grow: (el, ctx) => (ctx.clicked ? stockCrash(el) : marketPulse(el)),
   coin: (el, ctx) => {
     if (ctx.clicked) particles(el, ['✨','✦','💰'], 6);
     return play(el, {

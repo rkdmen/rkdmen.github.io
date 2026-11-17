@@ -4,7 +4,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const rand = (lo, hi) => Math.random() * (hi - lo) + lo;
 const active = () => !reducedMotion.matches && !document.hidden;
 
-function particle(type, x, y, size, frames, duration) {
+function particle(type, x, y, size, frames, duration, easing) {
   if (!active() || !Number.isFinite(x + y)) return;
   const node = document.createElement('i');
   node.className = `trail-particle trail-${type}`;
@@ -13,7 +13,7 @@ function particle(type, x, y, size, frames, duration) {
     width: `${size}px`, height: `${size}px`
   });
   document.body.append(node);
-  const animation = node.animate(frames, { duration, easing: 'ease-out', fill: 'forwards' });
+  const animation = node.animate(frames, { duration, easing, fill: 'forwards' });
   animation.finished.catch(() => {}).finally(() => node.remove());
   return node;
 }
@@ -36,28 +36,28 @@ function snow(x, y) {
   particle('snow', x + rand(-2, 2), y, rand(3, 6), [
     { transform: 'translate3d(0,0,0) scale(1)', opacity: .9 },
     { transform: `translate3d(${rand(-16,-5)}px,${rand(-8,15)}px,0) scale(.25)`, opacity: 0 }
-  ], rand(560, 850));
+  ], rand(560, 850), 'ease-out');
 }
 
 function cloud(x, y) {
   particle('cloud', x, y, rand(8, 15), [
     { transform: 'translate3d(0,0,0) scale(.65)', opacity: .65 },
     { transform: `translate3d(${rand(-12,12)}px,${rand(-16,-4)}px,0) scale(1.6)`, opacity: 0 }
-  ], rand(800, 1300));
+  ], rand(800, 1300), 'ease-out');
 }
 
 function exhaust(x, y) {
   particle('exhaust', x, y, rand(5, 11), [
     { transform: 'translate3d(0,0,0) scale(.6)', opacity: .55 },
     { transform: `translate3d(${rand(9,22)}px,${rand(-12,-3)}px,0) scale(1.55)`, opacity: 0 }
-  ], rand(650, 1050));
+  ], rand(650, 1050), 'ease-out');
 }
 
 function steam(x, y) {
   particle('steam', x, y, rand(4, 8), [
     { transform: 'translate3d(0,0,0) scale(.5)', opacity: .42 },
     { transform: `translate3d(${rand(-7,7)}px,-25px,0) scale(1.15)`, opacity: 0 }
-  ], rand(1300, 1800));
+  ], rand(1300, 1800), 'ease-out');
 }
 
 // Each moving actor gets its own beat, starting on its first frame. No frame-by-frame layout reads.
@@ -89,7 +89,7 @@ function rocketSmoke(x, y) {
   particle('rocket', x, y, rand(7, 13), [
     { transform: 'translate3d(0,0,0) scale(.5)', opacity: .75 },
     { transform: `translate3d(${rand(-10,10)}px,${rand(-10,6)}px,0) scale(${rand(2, 3.2)})`, opacity: 0 }
-  ], rand(900, 1500));
+  ], rand(900, 1500), 'ease-out');
 }
 
 // Rects passed here are the tail point itself.
@@ -123,16 +123,55 @@ export function champagneBubbles(el, count = 5) {
     particle('bubble', x, y, rand(3, 7), [
       { transform: 'translate3d(0,0,0) scale(.5)', opacity: .8 },
       { transform: `translate3d(${rand(-15,15)}px,${rand(-20,-39)}px,0) scale(1.25)`, opacity: 0 }
-    ], rand(650, 1200));
+    ], rand(650, 1200), 'ease-out');
   }
 }
 
+function splat(x, y) {
+  particle('splat', x, y, rand(6, 10), [
+    { transform: 'scale(.4, .2)', opacity: .9 },
+    { transform: 'scale(1.9, .45)', opacity: 0 }
+  ], 750, 'ease-out');
+}
+
+// Swells at the edge, stretches as it falls under gravity, and splats where it lands.
 function drop(x, y) {
-  particle('blood', x, y, rand(4, 8), [
-    { transform: 'translate3d(0,0,0) rotate(45deg) scale(.3)', opacity: .95 },
-    { transform: 'translate3d(0,1px,0) rotate(45deg) scale(1)', opacity: .95, offset: .3 },
-    { transform: `translate3d(0,${rand(18, 46)}px,0) rotate(45deg) scale(.8)`, opacity: 0 }
-  ], rand(900, 1500));
+  const fall = rand(45, 95);
+  const duration = rand(1300, 2000);
+  particle('blood', x, y, rand(5, 10), [
+    { transform: 'translate3d(0,0,0) scale(.2) rotate(45deg)', opacity: .98, easing: 'ease-out' },
+    { transform: 'translate3d(0,2px,0) scale(1) rotate(45deg)', opacity: .98, offset: .4, easing: 'ease-in' },
+    { transform: `translate3d(0,${fall}px,0) scale(.7, 1.8) rotate(45deg)`, opacity: .9 }
+  ], duration, 'linear');
+  setTimeout(() => splat(x, y + fall + 4), duration);
+}
+
+const DRIP_COLUMNS = 18;
+
+// Uneven drips run down from the top of the screen until it is covered, then the blood drains away.
+export function bloodFlood() {
+  if (!active()) return Promise.resolve();
+  const layer = document.createElement('div');
+  layer.className = 'blood-flood';
+  layer.setAttribute('aria-hidden', 'true');
+  const width = 100 / DRIP_COLUMNS;
+  const pours = Array.from({ length: DRIP_COLUMNS }, (_, i) => {
+    const drip = document.createElement('i');
+    drip.className = 'blood-drip';
+    // Slight overlap hides the seams between neighbouring drips.
+    drip.style.left = `${i * width - .4}%`;
+    drip.style.width = `${width + .8}%`;
+    layer.append(drip);
+    return drip.animate([
+      { transform: 'scaleY(0)' },
+      { transform: 'scaleY(1)' }
+    ], { duration: rand(900, 1700), delay: rand(0, 350), easing: 'cubic-bezier(.5, 0, .75, 1)', fill: 'forwards' }).finished;
+  });
+  document.body.append(layer);
+  return Promise.all(pours)
+    .then(() => layer.animate([{ opacity: 1 }, { opacity: 1, offset: .35 }, { opacity: 0 }], { duration: 1100, fill: 'forwards' }).finished)
+    .catch(() => {})
+    .finally(() => layer.remove());
 }
 
 // Staggered particles released along the bottom edge of the emoji.
@@ -151,7 +190,7 @@ function crumb(x, y) {
   particle('crumb', x, y, rand(2, 5), [
     { transform: 'translate3d(0,0,0) rotate(0deg)', opacity: .95 },
     { transform: `translate3d(${rand(-9, 9)}px,${rand(16, 34)}px,0) rotate(${rand(-200, 200)}deg)`, opacity: 0 }
-  ], rand(600, 1000));
+  ], rand(600, 1000), 'ease-out');
 }
 
 export const crumbs = (el, count) => sprinkle(el, count, crumb);
@@ -213,6 +252,23 @@ export function floatUp(el, chars, count) {
   }));
 }
 
+const MONEY = ['💸', '💵', '💵', '🪙'];
+
+// Bills and coins tumble from the emoji down past the bottom of the screen.
+export function moneyRain(el, count) {
+  const r = el.getBoundingClientRect();
+  const fall = innerHeight - r.top + 40;
+  return Promise.all(Array.from({ length: count }, (_, i) => {
+    const drift = rand(-90, 90);
+    const spin = rand(-280, 280);
+    return decoration('money', MONEY[i % MONEY.length], r.left + r.width / 2 + rand(-8, 8), r.top + r.height / 2, [
+      { transform: `${POP}(.4) translate(0, 0) rotate(0deg)`, opacity: 0 },
+      { transform: `${POP}(1) translate(${drift * .15}px, -16px) rotate(${spin * .1}deg)`, opacity: 1, offset: .14, easing: 'ease-in' },
+      { transform: `${POP}(1) translate(${drift}px, ${fall}px) rotate(${spin}deg)`, opacity: 1 }
+    ], rand(1300, 2100));
+  }));
+}
+
 const FIREWORK_COLORS = ['#ff3e81', '#ffd23f', '#3ec1ff', '#7cff6b', '#ffffff'];
 
 function burst(x, y) {
@@ -223,7 +279,7 @@ function burst(x, y) {
     const node = particle('spark', x, y, rand(2.5, 4), [
       { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
       { transform: `translate3d(${Math.cos(angle) * distance}px,${Math.sin(angle) * distance + 6}px,0) scale(.4)`, opacity: 0 }
-    ], rand(700, 1000));
+    ], rand(700, 1000), 'ease-out');
     if (node) {
       node.style.background = color;
     }
@@ -243,7 +299,7 @@ function antDot(x,y) {
   particle('ant',x,y,rand(2,4),[
     {transform:'translate3d(0,0,0) scale(1)',opacity:.65},
     {transform:'translate3d(0,-4px,0) scale(.1)',opacity:0}
-  ],rand(500,850));
+  ],rand(500,850), 'ease-out');
 }
 export const antTrail = () => trail(85,rect=>
   ({x:rect.x+rect.width*.18,y:rect.y+rect.height*.76}),antDot);

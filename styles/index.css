@@ -187,3 +187,12 @@ html.on-green{background:#4c9a4f}
 .footstep{font-size:13px;transform:translate(-50%,-50%) rotate(-90deg)}
 .float-char{font-size:16px}
 .emoji.is-bitten{-webkit-mask-image:radial-gradient(circle at 92% 8%,transparent var(--bite),#000 calc(var(--bite) + .5px));mask-image:radial-gradient(circle at 92% 8%,transparent var(--bite),#000 calc(var(--bite) + .5px))}
+.money{position:fixed;z-index:17;font-size:18px;line-height:1;pointer-events:none}
+/* 📈 crash: instant red flash, then the root transition fades it back. */
+html.crashing{background:#ffd9d9;transition:none}
+@media(prefers-color-scheme:dark){html.crashing{background:#4a0f14}}
+.trail-splat{background:#b10d1a;border-radius:50%}
+@media(prefers-color-scheme:dark){.trail-splat{background:#e3192b}}
+/* 🅰️ tap: drips grow down from the top until the screen is covered. */
+.blood-flood{position:fixed;inset:0;z-index:25;overflow:hidden;pointer-events:none}
+.blood-drip{position:absolute;top:0;height:120%;background:linear-gradient(to bottom,#5c0009,#a3000f 70%,#c80016);border-radius:0 0 50% 50%/0 0 7% 7%;transform:scaleY(0);transform-origin:top}
