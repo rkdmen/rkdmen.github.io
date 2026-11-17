@@ -42,7 +42,7 @@ function trigger(el, clicked = false) {
   const behavior = behaviors[el.dataset.action];
   if (!behavior) return;
   group.forEach(item => { busy.add(item); lastRun.set(item, performance.now()); });
-  Promise.resolve().then(() => behavior(el, { emojis, drinks, clicked, trigger }))
+  Promise.resolve().then(() => behavior(el, { emojis, drinks, clicked, trigger, takeover }))
     .catch(() => {}).finally(() => group.forEach(item => busy.delete(item)));
 }
 
@@ -66,15 +66,18 @@ function every(min, max, run) {
 }
 
 const title = document.querySelector('.headline');
-title?.addEventListener('click', async () => {
+// Page-wide scenes pause the idle scheduler and every other tap until they finish.
+async function takeover(run) {
   if (surpriseRunning || reducedMotion.matches) return;
   surpriseRunning = true;
   try {
-    await surprise(title, emojis);
+    await run();
   } finally {
     surpriseRunning = false;
   }
-});
+}
+
+title?.addEventListener('click', () => takeover(() => surprise(title, emojis)));
 
 cycleGreeting(document.querySelector('.greeting'));
 waveFlags(emojis.filter(el => el.dataset.action === 'flag'));

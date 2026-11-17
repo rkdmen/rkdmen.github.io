@@ -54,7 +54,8 @@ export const easeOut = t => 1 - (1 - t) ** 3;
 function copyEmojiContent(source, actor) {
   const original = source.querySelector('.spin-core');
   if (!original) {
-    actor.textContent = source.textContent;
+    // Waving flags hold extra strips; the base span has the single glyph.
+    actor.textContent = source.querySelector('.flag-base')?.textContent ?? source.textContent;
     return () => {};
   }
   const clone = original.cloneNode(true);
@@ -68,24 +69,32 @@ function copyEmojiContent(source, actor) {
   };
 }
 
-// Moves a text-only stand-in along the path; the real button keeps its place in the row.
+// A text-only copy of the element at its on-screen spot, appended to <body>.
+export function makeStandIn(el) {
+  const rect = el.getBoundingClientRect();
+  const computed = getComputedStyle(el);
+  const ghost = document.createElement('span');
+  ghost.className = 'emoji-actor';
+  ghost.setAttribute('aria-hidden', 'true');
+  Object.assign(ghost.style, {
+    left: `${rect.left}px`, top: `${rect.top}px`,
+    width: `${rect.width}px`, height: `${rect.height}px`,
+    fontSize: computed.fontSize, fontFamily: computed.fontFamily,
+    fontWeight: computed.fontWeight, letterSpacing: computed.letterSpacing
+  });
+  const alignSpin = copyEmojiContent(el, ghost);
+  document.body.append(ghost);
+  alignSpin();
+  return { ghost, rect };
+}
+
+// Moves a stand-in along the path; the real button keeps its place in the row.
 const gliding = new WeakSet();
 // `at` maps progress 0..1 to [x, y, rotate, scale, opacity].
 export async function glide(el, at, { duration, ease, onMove }) {
   if (reducedMotion.matches || !el || gliding.has(el)) return;
   gliding.add(el);
-  const r = el.getBoundingClientRect();
-  const computed = getComputedStyle(el);
-  const ghost = document.createElement('span');
-  ghost.className = 'emoji-actor';
-  const alignSpin = copyEmojiContent(el, ghost);
-  ghost.setAttribute('aria-hidden', 'true');
-  Object.assign(ghost.style, {
-    left: `${r.left}px`, top: `${r.top}px`,
-    width: `${r.width}px`, height: `${r.height}px`,
-    fontSize: computed.fontSize, fontFamily: computed.fontFamily,
-    fontWeight: computed.fontWeight, letterSpacing: computed.letterSpacing
-  });
+  const { ghost, rect: r } = makeStandIn(el);
   const place = u => {
     const [x, y, rotate, scale, rawOpacity] = at(u);
     const opacity = Math.min(1, Math.max(0, rawOpacity));
@@ -93,8 +102,6 @@ export async function glide(el, at, { duration, ease, onMove }) {
     ghost.style.opacity = opacity;
     onMove?.({ x: r.left + x, y: r.top + y, width: r.width, height: r.height, opacity });
   };
-  document.body.append(ghost);
-  alignSpin();
   place(0);
   el.style.visibility = 'hidden';
   try {
@@ -186,18 +193,7 @@ const cruiseEase = progress => {
 export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll = 8, onMove } = {}) {
   if (reducedMotion.matches || !el || gliding.has(el)) return;
   gliding.add(el);
-  const rect = el.getBoundingClientRect();
-  const computed = getComputedStyle(el);
-  const ghost = document.createElement('span');
-  ghost.className = 'emoji-actor';
-  const alignSpin = copyEmojiContent(el, ghost);
-  ghost.setAttribute('aria-hidden', 'true');
-  Object.assign(ghost.style, {
-    left: `${rect.left}px`, top: `${rect.top}px`,
-    width: `${rect.width}px`, height: `${rect.height}px`,
-    fontSize: computed.fontSize, fontFamily: computed.fontFamily,
-    fontWeight: computed.fontWeight, letterSpacing: computed.letterSpacing
-  });
+  const { ghost, rect } = makeStandIn(el);
   const at = sampleSmoothPath(knots);
   const place = t => {
     const u = cruiseEase(t);
@@ -207,8 +203,6 @@ export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll =
     ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
     onMove?.({ x: rect.left + x, y: rect.top + y, width: rect.width, height: rect.height, opacity: 1 });
   };
-  document.body.append(ghost);
-  alignSpin();
   place(0);
   el.style.visibility = 'hidden';
   try {

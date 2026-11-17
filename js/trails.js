@@ -15,6 +15,21 @@ function particle(type, x, y, size, frames, duration) {
   document.body.append(node);
   const animation = node.animate(frames, { duration, easing: 'ease-out', fill: 'forwards' });
   animation.finished.catch(() => {}).finally(() => node.remove());
+  return node;
+}
+
+// A short-lived text decoration centred on a viewport point.
+function decoration(className, text, x, y, frames, duration) {
+  if (!active()) return Promise.resolve();
+  const node = document.createElement('span');
+  node.className = className;
+  node.textContent = text;
+  node.setAttribute('aria-hidden', 'true');
+  node.style.left = `${x}px`;
+  node.style.top = `${y}px`;
+  document.body.append(node);
+  return node.animate(frames, { duration, fill: 'forwards' }).finished
+    .catch(() => {}).finally(() => node.remove());
 }
 
 function snow(x, y) {
@@ -120,12 +135,107 @@ function drop(x, y) {
   ], rand(900, 1500));
 }
 
-// Drops swell at the bottom edge of the emoji, then fall and fade.
-export function bloodDrops(el, count) {
+// Staggered particles released along the bottom edge of the emoji.
+function sprinkle(el, count, emit) {
   if (!active() || !el?.isConnected) return;
   const r = el.getBoundingClientRect();
   for (let i = 0; i < count; i++) {
-    setTimeout(() => drop(r.left + r.width * rand(.2, .8), r.bottom - r.height * .12), i * rand(20, 55));
+    setTimeout(() => emit(r.left + r.width * rand(.2, .8), r.bottom - r.height * .12), i * rand(20, 55));
+  }
+}
+
+// Drops swell at the bottom edge of the emoji, then fall and fade.
+export const bloodDrops = (el, count) => sprinkle(el, count, drop);
+
+function crumb(x, y) {
+  particle('crumb', x, y, rand(2, 5), [
+    { transform: 'translate3d(0,0,0) rotate(0deg)', opacity: .95 },
+    { transform: `translate3d(${rand(-9, 9)}px,${rand(16, 34)}px,0) rotate(${rand(-200, 200)}deg)`, opacity: 0 }
+  ], rand(600, 1000));
+}
+
+export const crumbs = (el, count) => sprinkle(el, count, crumb);
+
+const POP = 'translate(-50%, -50%) scale';
+
+// A red unread badge on the phone's top-right corner.
+export function notifyBadge(el) {
+  const r = el.getBoundingClientRect();
+  return decoration('notify-badge', '1', r.right - r.width * .18, r.top + r.height * .14, [
+    { transform: `${POP}(0)`, opacity: 1 },
+    { transform: `${POP}(1.25)`, offset: .12 },
+    { transform: `${POP}(1)`, offset: .2 },
+    { transform: `${POP}(1)`, opacity: 1, offset: .85 },
+    { transform: `${POP}(.6)`, opacity: 0 }
+  ], 1600);
+}
+
+// A speech bubble above the emoji.
+export function speechBubble(el, text) {
+  const r = el.getBoundingClientRect();
+  return decoration('speech-bubble', text, r.left + r.width / 2, r.top - r.height * .35, [
+    { transform: `${POP}(.3)`, opacity: 0 },
+    { transform: `${POP}(1.08)`, opacity: 1, offset: .15 },
+    { transform: `${POP}(1)`, opacity: 1, offset: .25 },
+    { transform: `${POP}(1)`, opacity: 1, offset: .82 },
+    { transform: `${POP}(.9)`, opacity: 0 }
+  ], 1800);
+}
+
+// Footprints walking away to the left of the emoji, appearing one by one.
+export function footsteps(el, count) {
+  const r = el.getBoundingClientRect();
+  const step = r.width * .55;
+  return Promise.all(Array.from({ length: count }, (_, i) => decoration(
+    'footstep', '👣',
+    r.left - step * (i + .4), r.bottom - r.height * (i % 2 ? .18 : .3),
+    [
+      { opacity: 0, offset: 0 },
+      { opacity: 0, offset: i * .12 },
+      { opacity: .85, offset: i * .12 + .05 },
+      { opacity: .85, offset: .75 },
+      { opacity: 0 }
+    ],
+    1700
+  )));
+}
+
+// Characters drift up from the top of the emoji with a little sway.
+export function floatUp(el, chars, count) {
+  const r = el.getBoundingClientRect();
+  return Promise.all(Array.from({ length: count }, (_, i) => {
+    const sway = rand(-14, 14);
+    return decoration('float-char', chars[i % chars.length], r.left + r.width * rand(.2, .8), r.top + r.height * .2, [
+      { transform: `${POP}(.5) translate(0, 0)`, opacity: 0 },
+      { transform: `${POP}(1) translate(${sway * .4}px, -10px)`, opacity: 1, offset: .2 },
+      { transform: `${POP}(.9) translate(${sway}px, ${-rand(34, 52)}px)`, opacity: 0 }
+    ], rand(1100, 1600) + i * 90);
+  }));
+}
+
+const FIREWORK_COLORS = ['#ff3e81', '#ffd23f', '#3ec1ff', '#7cff6b', '#ffffff'];
+
+function burst(x, y) {
+  const color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+  for (let i = 0; i < 14; i++) {
+    const angle = i / 14 * Math.PI * 2;
+    const distance = rand(16, 30);
+    const node = particle('spark', x, y, rand(2.5, 4), [
+      { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
+      { transform: `translate3d(${Math.cos(angle) * distance}px,${Math.sin(angle) * distance + 6}px,0) scale(.4)`, opacity: 0 }
+    ], rand(700, 1000));
+    if (node) {
+      node.style.background = color;
+    }
+  }
+}
+
+// Bursts above the statue's raised torch, which sits on its upper left.
+export function fireworks(el, count) {
+  if (!active() || !el?.isConnected) return;
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => burst(r.left + r.width * rand(.1, .5), r.top - r.height * rand(.2, .7)), i * 260);
   }
 }
 
