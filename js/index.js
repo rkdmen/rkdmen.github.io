@@ -2,12 +2,15 @@ import { behaviors } from './behaviors.js';
 import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
+import { coffeeSteam } from './trails.js';
+import { play, particles } from './engine.js';
 
 const emojis = [...document.querySelectorAll('.emoji')];
 const drinks = emojis.filter(el => ['cheers', 'wine', 'sway'].includes(el.dataset.action));
 const ball = emojis.find(el => el.dataset.action === 'kick');
 const golfer = emojis.find(el => el.getAttribute('aria-label') === 'Golfer');
 const heart = emojis.find(el => el.dataset.action === 'heart');
+const coffee = emojis.find(el => el.dataset.action === 'steam');
 const busy = new WeakSet();
 const lastRun = new WeakMap();
 const highlights = ['fly', 'ski', 'kick', 'drive', 'heart', 'cheers', 'wine'];
@@ -51,6 +54,27 @@ function heartbeat() {
   setTimeout(heartbeat, rand(2300, 3200));
 }
 
+// Gentle coffee steam stays alive independently of movement and click events.
+function ambientSteam() {
+  if (!surpriseRunning && !document.hidden) coffeeSteam(coffee);
+  setTimeout(ambientSteam, rand(1650, 2600));
+}
+
+// A brief mix of large and small star twinkles across the bottom emoji row.
+function startTwinkles() {
+  const bottom = document.querySelector('.emoji-line:last-child');
+  if (!bottom || reducedMotion.matches) return;
+  const picks = [...bottom.querySelectorAll('.emoji')].filter(el => el.dataset.action !== 'fly');
+  picks.forEach((el, i) => setTimeout(() => {
+    if (document.hidden || surpriseRunning || busy.has(el)) return;
+    play(el, {
+      scale: [1, i % 2 ? 1.10 : 1.26, .94, 1],
+      y: [0, -4 - (i % 2) * 3, 0, 0]
+    }, { duration: .55, ease: 'easeOut' });
+    particles(el, i % 2 ? ['✦'] : ['✨'], i % 2 ? 1 : 2);
+  }, 360 + i * 140));
+}
+
 const title = document.querySelector('.headline');
 title?.addEventListener('click', async () => {
   if (surpriseRunning || reducedMotion.matches) return;
@@ -73,7 +97,11 @@ const whenVisible = () => new Promise(resolve => {
 });
 
 if (!reducedMotion.matches) {
-  whenVisible().then(entrance).catch(() => {}).finally(() => {
+  whenVisible().then(() => {
+    startTwinkles();
+    setTimeout(ambientSteam, 700);
+    return entrance();
+  }).catch(() => {}).finally(() => {
     trigger(choose(drinks));
     setTimeout(tick, 220);
     setTimeout(heartbeat, 750);

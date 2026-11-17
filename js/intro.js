@@ -1,71 +1,7 @@
-import { animate } from 'https://cdn.jsdelivr.net/npm/motion@14.11.1/+esm';
-import { reducedMotion, rand, glideBezier } from './engine.js';
+import { reducedMotion, glideBezier } from './engine.js';
+import { snowTrail, cloudTrail } from './trails.js';
 
 // A small, throttled snow trail. No layout reads on animation frames.
-function emitSnow(x, y) {
-  const dot = document.createElement('i');
-  dot.className = 'snow-particle';
-  const size = rand(3, 6);
-  Object.assign(dot.style, {
-    left: `${x + rand(-4, 4)}px`, top: `${y + rand(-3, 3)}px`,
-    width: `${size}px`, height: `${size}px`
-  });
-  document.body.append(dot);
-  animate(dot, {
-    x: [0, rand(-16, -5)], y: [0, rand(-11, 17)],
-    opacity: [.85, .65, 0], scale: [1, .75, .25]
-  }, { duration: rand(.55, .9), ease: 'easeOut' }).finished
-    .catch(() => {}).finally(() => dot.remove());
-}
-
-// Light cloud puffs are throttled so the trail stays cheap on mobile.
-function emitCloud(x, y) {
-  const puff = document.createElement('i');
-  puff.className = 'cloud-particle';
-  const size = rand(9, 18);
-  Object.assign(puff.style, {
-    left: `${x - size / 2}px`, top: `${y - size / 2}px`,
-    width: `${size}px`, height: `${size}px`
-  });
-  document.body.append(puff);
-  animate(puff, {
-    x: [0, rand(-12, 12)], y: [0, rand(-15, -3)],
-    opacity: [0, .8, .45, 0], scale: [.5, 1.1, 1.5]
-  }, { duration: rand(.95, 1.4), ease: 'easeOut' })
-    .finished.catch(() => {}).finally(() => puff.remove());
-}
-
-export function cloudTrail() {
-  let last = 0;
-  let previous = null;
-  return ({ x, y, width, height }) => {
-    const center = { x: x + width / 2, y: y + height / 2 };
-    const now = performance.now();
-    if (!previous) {
-      previous = center;
-      last = now;
-      return;
-    }
-    if (now - last >= 135) {
-      if (Math.hypot(center.x - previous.x, center.y - previous.y) > 5) {
-        emitCloud(previous.x, previous.y);
-      }
-      last = now;
-      previous = center;
-    }
-  };
-}
-
-function snowTrail() {
-  let last = 0;
-  return ({ x, y, width, height }) => {
-    const now = performance.now();
-    if (now - last < 105) return;
-    last = now;
-    emitSnow(x + width * .24, y + height * .86);
-  };
-}
-
 function viewportRect() {
   const v = window.visualViewport;
   return {

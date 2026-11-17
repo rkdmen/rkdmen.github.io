@@ -106,3 +106,36 @@ html.intro-pending [data-action="ski"] { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .headline::after { display: none; animation: none; }
 }
+
+/* 19 quick typewriter steps. The real title stays full-width for WebView layout. */
+html.type-pending .headline { clip-path: inset(0 100% 0 0); }
+.headline.is-typing { animation: headline-type .82s steps(19, end) both; }
+@keyframes headline-type {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+/* Every trail particle is a fixed, short-lived decoration without a button box. */
+.trail-particle {
+  position: fixed;
+  z-index: 13;
+  display: block;
+  pointer-events: none;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+.trail-snow { background: rgba(245,249,255,.92); border: 1px solid rgba(143,172,197,.62); }
+.trail-cloud { background: rgba(221,235,245,.82); border: 1px solid rgba(154,180,205,.44); }
+.trail-exhaust { background: rgba(140,149,158,.32); border: 1px solid rgba(126,139,150,.27); }
+.trail-steam { background: rgba(165,177,185,.30); filter: blur(.7px); }
+.trail-bubble { background: rgba(225,243,255,.30); border: 1px solid rgba(100,177,222,.72); }
+@media (prefers-color-scheme: dark) {
+  .trail-cloud { background: rgba(220,233,246,.65); border-color: rgba(210,228,248,.5); }
+  .trail-snow { background: rgba(248,252,255,.94); }
+  .trail-exhaust { background: rgba(185,190,200,.45); }
+  .trail-steam { background: rgba(215,225,237,.44); }
+  .trail-bubble { border-color: rgba(168,216,250,.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.type-pending .headline { clip-path: none; }
+  .headline.is-typing { animation: none; }
+}
