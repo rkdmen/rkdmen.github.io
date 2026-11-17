@@ -50,6 +50,24 @@ function pathSampler(points) {
 export const easeInOut = t => t * t * (3 - 2 * t);
 export const easeOut = t => 1 - (1 - t) ** 3;
 
+
+function copyEmojiContent(source, actor) {
+  const original = source.querySelector('.spin-core');
+  if (!original) {
+    actor.textContent = source.textContent;
+    return () => {};
+  }
+  const clone = original.cloneNode(true);
+  actor.appendChild(clone);
+  return () => {
+    const from = original.getAnimations?.()[0];
+    const to = clone.getAnimations?.()[0];
+    if (from && to && from.currentTime != null) {
+      try { to.currentTime = from.currentTime; } catch {}
+    }
+  };
+}
+
 // Moves a text-only stand-in along the path; the real button keeps its place in the row.
 const gliding = new WeakSet();
 export async function glide(el, points, { duration, ease, onMove }) {
@@ -59,7 +77,7 @@ export async function glide(el, points, { duration, ease, onMove }) {
   const computed = getComputedStyle(el);
   const ghost = document.createElement('span');
   ghost.className = 'emoji-actor';
-  ghost.textContent = el.textContent;
+  const alignSpin = copyEmojiContent(el, ghost);
   ghost.setAttribute('aria-hidden', 'true');
   Object.assign(ghost.style, {
     left: `${r.left}px`, top: `${r.top}px`,
@@ -71,9 +89,10 @@ export async function glide(el, points, { duration, ease, onMove }) {
   const place = u => {
     const [x, y, rotate, scale] = at(u);
     ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg) scale(${scale})`;
-    onMove?.(ghost);
+    onMove?.({ x: r.left + x, y: r.top + y, width: r.width, height: r.height });
   };
   document.body.append(ghost);
+  alignSpin();
   place(0);
   el.style.visibility = 'hidden';
   try {
@@ -169,7 +188,7 @@ export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll =
   const computed = getComputedStyle(el);
   const ghost = document.createElement('span');
   ghost.className = 'emoji-actor';
-  ghost.textContent = el.textContent;
+  const alignSpin = copyEmojiContent(el, ghost);
   ghost.setAttribute('aria-hidden', 'true');
   Object.assign(ghost.style, {
     left: `${rect.left}px`, top: `${rect.top}px`,
@@ -186,8 +205,9 @@ export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll =
     ghost.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
     onMove?.({ x: rect.left + x, y: rect.top + y, width: rect.width, height: rect.height });
   };
-  place(0);
   document.body.append(ghost);
+  alignSpin();
+  place(0);
   el.style.visibility = 'hidden';
   try {
     const animation = animate(0, 1, {
@@ -203,7 +223,7 @@ export async function glideBezier(el, knots, { duration = 3.3, delay = 0, roll =
 }
 
 // Shrinks the path to fit the emoji rows instead of flattening it at the edges.
-export function travel(el, points, { duration }) {
+export function travel(el, points, { duration, onMove } = {}) {
   const bounds = document.querySelector('.emoji-lines')?.getBoundingClientRect();
   if (!bounds || !el) return Promise.resolve();
   const r = el.getBoundingClientRect();
@@ -213,7 +233,7 @@ export function travel(el, points, { duration }) {
   const ys = points.map(p => p[1]);
   const kx = Math.min(fit(bounds.right - inset - r.right, Math.max(...xs)), fit(r.left - bounds.left - inset, -Math.min(...xs)));
   const ky = Math.min(fit(bounds.bottom - inset - r.bottom, Math.max(...ys)), fit(r.top - bounds.top - inset, -Math.min(...ys)));
-  return glide(el, points.map(([x, y, ...rest]) => [x * kx, y * ky, ...rest]), { duration, ease: easeInOut, onMove: undefined });
+  return glide(el, points.map(([x, y, ...rest]) => [x * kx, y * ky, ...rest]), { duration, ease: easeInOut, onMove });
 }
 export function particles(el, chars = ['✦','✨'], count = 4) {
   if (reducedMotion.matches) return;

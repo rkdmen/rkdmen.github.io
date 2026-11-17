@@ -1,4 +1,5 @@
 import { play, travel, choose, particles } from './engine.js';
+import { cloudTrail } from './intro.js';
 
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
@@ -71,6 +72,11 @@ export const behaviors = {
   sway: (el, ctx) => toast(ctx.drinks, el),
   pop: el => { particles(el); return bump(el); },
   steam: el => { particles(el, ['☁️','♨️'], 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
+  champagne: el => { particles(el, ['🫧','✨','🥂'], 5); return play(el, { y: [0,-12,0], rotate: [0,-17,15,0], scale: [1,1.15,1] }, { duration: .8 }); },
+  sushi: el => play(el, { x: [0,-3,5,-3,0], rotate: [0,-11,13,-8,0], y: [0,-6,0] }, { duration: .8 }),
+  sizzle: el => { particles(el, ['♨️','✨'], 3); return play(el, { scale: [1,1.08,1], y: [0,-4,0] }, { duration: .72 }); },
+  egg: el => play(el, { y: [0,-15,-18,0], rotate: [0,-20,175,360] }, { duration: 1.0 }),
+  croissant: el => play(el, { y: [0,-8,0], rotate: [0,-28,24,0] }, { duration: .8 }),
   bounce: bump,
   code: el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { duration: .55 }),
   buzz: el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 }),
@@ -78,13 +84,13 @@ export const behaviors = {
   charge: el => travel(el, [[0,0],[-13,0],[55,0],[0,0]], { duration: 1.1 }),
   crawl: el => travel(el, [[0,0],[14,-2,-4],[28,0,6],[0,0]], { duration: 1.3 }),
   grow: el => play(el, { y: [0,-23,0], scale: [1,1.28,1] }, { duration: .62 }),
-  spin: el => play(el, { rotate: [0,360] }, { duration: .82 }),
+  spin: el => play(el, { y: [0,-5,0], scale: [1,1.1,1] }, { duration: .75 }),
   kick: (_el, ctx) => golfShot(ctx),
   golf: (el, ctx) => el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 }),
   ski: (el, ctx) => travel(el, [[0,0,0],[20,-14,-12],[44,-22,-4],[66,-8,10],[84,4,4],[0,0,0]], { duration: ctx.clicked ? 1.8 : 1.5 }),
   shuffle: (el, ctx) => { ctx.trigger(choose(ctx.emojis)); return play(el, { rotate: [0,180,360] }, { duration: .62 }); },
   wave: el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 }),
-  heart: el => play(el, { scale: [1,1.35,1,1.26,1] }, { duration: .58 }),
-  fly: (el, ctx) => travel(el, loop(ctx.clicked ? 34 : 24), { duration: ctx.clicked ? 1.7 : 1.4 }),
-  earth: el => play(el, { rotate: [0,360], scale: [1,1.13,1] }, { duration: 1.2 })
+  heart: el => play(el, { scale: [1,1.28,.96,1.34,.96,1.12,1], y: [0,-7,0,-10,0,-3,0] }, { duration: .82 }),
+  fly: (el, ctx) => travel(el, loop(ctx.clicked ? 34 : 24), { duration: ctx.clicked ? 1.7 : 1.4, onMove: cloudTrail() }),
+  earth: el => play(el, { y: [0,-5,0], scale: [1,1.13,1] }, { duration: 1.2 })
 };

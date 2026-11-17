@@ -6,6 +6,7 @@ const emojis = [...document.querySelectorAll('.emoji')];
 const drinks = emojis.filter(el => ['cheers', 'wine', 'sway'].includes(el.dataset.action));
 const ball = emojis.find(el => el.dataset.action === 'kick');
 const golfer = emojis.find(el => el.getAttribute('aria-label') === 'Golfer');
+const heart = emojis.find(el => el.dataset.action === 'heart');
 const busy = new WeakSet();
 const lastRun = new WeakMap();
 const highlights = ['fly', 'ski', 'kick', 'drive', 'heart', 'cheers', 'wine'];
@@ -43,6 +44,12 @@ function tick() {
   setTimeout(tick, rand(360, 650));
 }
 
+// A separate heartbeat makes it visible even when the random scheduler picks other emojis.
+function heartbeat() {
+  if (!document.hidden && !surpriseRunning) trigger(heart);
+  setTimeout(heartbeat, rand(2300, 3200));
+}
+
 const title = document.querySelector('.headline');
 title?.addEventListener('click', () => {
   if (surpriseRunning || reducedMotion.matches) return;
@@ -65,5 +72,6 @@ if (!reducedMotion.matches) {
   whenVisible().then(entrance).catch(() => {}).finally(() => {
     trigger(choose(drinks));
     setTimeout(tick, 220);
+    setTimeout(heartbeat, 750);
   });
 }

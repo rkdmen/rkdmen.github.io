@@ -26,3 +26,15 @@ h1{font-size:clamp(29px,5vw,40px);font-weight:700;letter-spacing:-.055em;line-he
 /* Hide destination slots until the animated stand-ins are ready. */
 html.intro-pending [data-action="fly"],
 html.intro-pending [data-action="ski"] { visibility: hidden; }
+
+/* Spin inside the button so parent interactions never interrupt rotation. */
+.spin-core{display:inline-block;transform-origin:50% 50%;animation:emoji-spin 7s linear infinite;vertical-align:baseline}
+.spin-soccer{animation-duration:2.8s}
+.spin-earth{animation-duration:10s}
+.spin-moon{animation-duration:7s}
+@keyframes emoji-spin{to{transform:rotate(360deg)}}
+.cloud-particle{position:fixed;z-index:13;display:block;border-radius:50%;
+  background:rgba(235,244,253,.84);border:1px solid rgba(150,180,205,.42);
+  box-shadow:0 0 9px rgba(173,205,235,.42);pointer-events:none;
+  will-change:transform,opacity}
+@media(prefers-color-scheme:dark){.cloud-particle{background:rgba(220,233,246,.65);border-color:rgba(210,228,248,.5)}}
