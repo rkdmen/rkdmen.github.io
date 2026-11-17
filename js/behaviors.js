@@ -61,6 +61,26 @@ async function stockCrash(el) {
   }
 }
 
+const TITLE_SHAKE = [0, -3, 3, -2, 2, 0].map(x => ({ transform: `translateX(${x}px)` }));
+
+// A ring of fire, a laugh, and the headline briefly turned against itself.
+async function mischief(el) {
+  particles(el, ['🔥'], 8);
+  speechBubble(el, "I'm 광민");
+  const title = document.querySelector('.headline');
+  // The decode effect also rewrites the headline; leave it alone while that runs.
+  if (!title || title.classList.contains('is-decoding') || title.classList.contains('is-devilish')) return;
+  title.classList.add('is-devilish');
+  title.textContent = 'I enjoy nothing.';
+  title.animate(TITLE_SHAKE, { duration: 400 });
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  } finally {
+    title.textContent = title.dataset.text;
+    title.classList.remove('is-devilish');
+  }
+}
+
 const PHASES = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌑'];
 // Steps the inner glyph through the lunar cycle; its spin pauses so the lit side reads correctly.
 function moonPhases(el) {
@@ -173,7 +193,13 @@ export const behaviors = {
     floatUp(el, ['🎸', '🎵', '🎶'], ctx.clicked ? 6 : 2);
     return rockOn(el);
   },
-  devil: (el) => { particles(el, ['😈','🔥'], 3); return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 }); },
+  devil: (el, ctx) => {
+    if (ctx.clicked) {
+      return Promise.all([mischief(el), play(el, { scale: [1, 1.6, 1.45, 1], rotate: [0, -20, 20, -10, 0] }, { duration: 1.2 })]);
+    }
+    particles(el, ['😈','🔥'], 3);
+    return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 });
+  },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
   no: el => { particles(el, ['🔥'], 3); return shake(el); },
   censor: (el, ctx) => (ctx.clicked ? pageMode('censoring', 1500) : blurSelf(el)),
@@ -190,7 +216,7 @@ export const behaviors = {
   steam: el => { coffeeSteam(el, 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
   champagne: el => { champagneBubbles(el, 6); particles(el, ['✨','🥂'], 2); return play(el, { y: [0,-12,0], rotate: [0,-17,15,0], scale: [1,1.15,1] }, { duration: .8 }); },
   // Conveyor belt: rides off to the right and comes back round from the left.
-  sushi: el => passThrough(el, { dx: 46, dy: 0, duration: 1.3 }),
+  sushi: el => passThrough(el, { dx: 46, dy: 0, hop: 0, duration: 1.3 }),
   sizzle: el => { particles(el, ['♨️','✨'], 3); return play(el, { scale: [1,1.08,1], y: [0,-4,0] }, { duration: .72 }); },
   egg: panToss,
   croissant: (el, ctx) => {
@@ -209,9 +235,9 @@ export const behaviors = {
   code: (el, ctx) => (ctx.clicked ? Promise.all([decodeHeadline(document.querySelector('.headline')), typing(el)]) : typing(el)),
   matrix: (el, ctx) => (ctx.clicked ? Promise.all([matrixRain(), typing(el)]) : typing(el)),
   buzz: (el, ctx) => (ctx.clicked ? Promise.all([notifyBadge(el), buzzShake(el)]) : buzzShake(el)),
-  drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
+  drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, hop: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
   // The bull faces left, so it charges left.
-  charge: el => passThrough(el, { dx: -50, dy: 0, duration: 1.1 }),
+  charge: el => passThrough(el, { dx: -50, dy: 0, hop: 0, duration: 1.1 }),
   crawl: (el, ctx) => {
     if (ctx.clicked) particles(el, ['🍪','✦'], 3);
     return travel(el, [[0,0],[9,-7,-12],[28,6,10],[47,-9,-5],[30,2,12],[0,0,0]], {
@@ -233,7 +259,7 @@ export const behaviors = {
     if (ctx.clicked) pageMode('on-green', 2200);
     return el.getAttribute('aria-label') === 'Golfer' ? golfShot(ctx) : play(el, { rotate: [0, -16, 16, 0] }, { duration: .6 });
   },
-  ski: (el, ctx) => passThrough(el, { dx: 44, dy: 10, duration: ctx.clicked ? 1.6 : 1.35, onMove: snowTrail() }),
+  ski: (el, ctx) => passThrough(el, { dx: 92, dy: 22, hop: 18, duration: ctx.clicked ? 2.4 : 2.0, onMove: snowTrail() }),
   shuffle: (el, ctx) => Promise.all([swapPair(ctx.emojis), play(el, { rotate: [0,180,360] }, { duration: .62 })]),
   wave: (el, ctx) => (ctx.clicked
     ? Promise.all([speechBubble(el, document.querySelector('.greeting')?.textContent ?? 'Hi'), waveHand(el)])

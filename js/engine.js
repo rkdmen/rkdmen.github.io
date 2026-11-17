@@ -234,8 +234,9 @@ export function travel(el, points, { duration, onMove } = {}) {
 }
 
 // Leaves forward to (dx, dy) while fading, then re-enters from (-dx, -dy), so it never reverses.
-export function passThrough(el, { dx, dy, duration, onMove }) {
-  const leave = pathSampler([[0, 0, 0, 1, 1], [dx * .55, dy * .55, 0, 1, 1], [dx, dy, 0, 1, 0]]);
+// `hop` lifts the middle of the exit into a jump, nose up.
+export function passThrough(el, { dx, dy, hop, duration, onMove }) {
+  const leave = pathSampler([[0, 0, 0, 1, 1], [dx * .55, dy * .55 - hop, -hop * .7, 1, 1], [dx, dy, 0, 1, 0]]);
   const enter = pathSampler([[-dx, -dy, 0, 1, 0], [-dx * .55, -dy * .55, 0, 1, 1], [0, 0, 0, 1, 1]]);
   const at = u => (u < .5 ? leave(u * 2) : enter(u * 2 - 1));
   return glide(el, at, { duration, ease: easeInOut, onMove });

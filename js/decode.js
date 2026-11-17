@@ -9,7 +9,7 @@ const randomNoise = () => noise[Math.floor(Math.random() * noise.length)];
 
 // Scrambles the headline into code, then resolves it back left to right.
 export async function decodeHeadline(title) {
-  if (reducedMotion.matches || !title) return;
+  if (reducedMotion.matches || !title || title.classList.contains('is-devilish')) return;
   const text = title.dataset.text;
   const started = performance.now();
   title.classList.add('is-decoding');

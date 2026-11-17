@@ -103,6 +103,7 @@ if (!reducedMotion.matches) {
     setTimeout(tick, 220);
     setTimeout(() => every(2000, 2800, () => trigger(heart)), 750);
     setTimeout(() => every(3500, 5500, () => trigger(noEntry)), 1500);
+    setTimeout(() => every(5000, 8000, () => trigger(vehicles.board)), 2500);
     setTimeout(() => every(380, 600, () => idleTrails(vehicles)), 300);
     setTimeout(() => every(900, 1700, () => bloodDrops(adobe, 1)), 1100);
   });
