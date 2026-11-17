@@ -1,4 +1,5 @@
 import { play, travel, passThrough, choose, particles } from './engine.js';
+import { matrixRain } from './matrix.js';
 import { snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
@@ -15,6 +16,7 @@ const blurOthers = () => {
   root.classList.add('censoring');
   return new Promise(resolve => setTimeout(resolve, 1500)).then(() => root.classList.remove('censoring'));
 };
+const typing = el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { duration: .55 });
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const tilt = el => play(el, { rotate: [0, -18, 15, -8, 0], y: [0, -7, 0] }, { duration: .62 });
 // Loop-the-loop that starts and ends at rest position.
@@ -69,7 +71,7 @@ export const behaviors = {
   rock: (el, ctx) => play(el, { rotate: [0, -24, 22, -16, 0], scale: [1, 1.22, 1] }, { duration: .6 }),
   devil: (el) => { particles(el, ['😈','🔥'], 3); return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 }); },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
-  no: shake,
+  no: el => { particles(el, ['🔥', '💨'], 3); return shake(el); },
   censor: (el, ctx) => (ctx.clicked ? blurOthers() : blurSelf(el)),
   cheers: (el, ctx) => toast(ctx.drinks, el),
   wine: (el, ctx) => toast(ctx.drinks, el),
@@ -82,10 +84,12 @@ export const behaviors = {
   egg: el => play(el, { y: [0,-15,-18,0], rotate: [0,-20,175,360] }, { duration: 1.0 }),
   croissant: el => play(el, { y: [0,-8,0], rotate: [0,-28,24,0] }, { duration: .8 }),
   bounce: bump,
-  code: el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { duration: .55 }),
+  code: typing,
+  matrix: (el, ctx) => (ctx.clicked ? Promise.all([matrixRain(), typing(el)]) : typing(el)),
   buzz: el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 }),
   drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
-  charge: el => travel(el, [[0,0],[-13,0],[55,0],[0,0]], { duration: 1.1 }),
+  // The bull faces left, so it charges left.
+  charge: el => passThrough(el, { dx: -50, dy: 0, duration: 1.1 }),
   crawl: (el, ctx) => {
     if (ctx.clicked) particles(el, ['🍪','✦'], 3);
     return travel(el, [[0,0],[9,-7,-12],[28,6,10],[47,-9,-5],[30,2,12],[0,0,0]], {

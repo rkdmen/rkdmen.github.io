@@ -157,3 +157,5 @@ html.type-pending .headline { clip-path: inset(0 100% 0 0); }
 @media(prefers-color-scheme:dark){.trail-ant{background:rgba(233,193,130,.64)}}
 .emoji,.headline,.punctuation,.emoji-actor{transition:filter .25s ease}
 html.censoring :is(.emoji:not([data-action="censor"]),.headline,.punctuation,.emoji-actor){filter:blur(6px)}
+/* Behind the content, above the page background. */
+.matrix-rain{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}

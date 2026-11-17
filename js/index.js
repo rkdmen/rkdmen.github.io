@@ -10,6 +10,7 @@ const drinks = emojis.filter(el => ['cheers', 'wine', 'sway'].includes(el.datase
 const ball = emojis.find(el => el.dataset.action === 'kick');
 const golfer = emojis.find(el => el.getAttribute('aria-label') === 'Golfer');
 const heart = emojis.find(el => el.dataset.action === 'heart');
+const noEntry = emojis.find(el => el.dataset.action === 'censor');
 const coffee = emojis.find(el => el.dataset.action === 'steam');
 const vehicles = {
   car: emojis.find(el => el.dataset.action === 'drive'),
@@ -48,21 +49,21 @@ function tick() {
     if (ticks % 4 === 0) trigger(choose(drinks));
     const pool = ticks % 3 === 0 ? emojis.filter(e => highlights.includes(e.dataset.action)) : emojis;
     trigger(choose(pool));
-    if (Math.random() < .25) trigger(choose(emojis));
+    if (Math.random() < .3) trigger(choose(emojis));
   }
-  setTimeout(tick, rand(360, 650));
+  setTimeout(tick, rand(300, 540));
 }
 
-// A separate heartbeat makes it visible even when the random scheduler picks other emojis.
-function heartbeat() {
-  if (!document.hidden && !surpriseRunning) trigger(heart);
-  setTimeout(heartbeat, rand(2300, 3200));
+// Signature moments keep their own beat, independent of the random scheduler.
+function repeat(el, min, max) {
+  if (!document.hidden && !surpriseRunning) trigger(el);
+  setTimeout(() => repeat(el, min, max), rand(min, max));
 }
 
 // Gentle coffee steam stays alive independently of movement and click events.
 function ambientSteam() {
   if (!surpriseRunning && !document.hidden) coffeeSteam(coffee);
-  setTimeout(ambientSteam, rand(1650, 2600));
+  setTimeout(ambientSteam, rand(1400, 2200));
 }
 
 function ambientTrails() {
@@ -100,7 +101,8 @@ if (!reducedMotion.matches) {
     setTimeout(startStarfield, 400);
     trigger(choose(drinks));
     setTimeout(tick, 220);
-    setTimeout(heartbeat, 750);
+    setTimeout(() => repeat(heart, 2000, 2800), 750);
+    setTimeout(() => repeat(noEntry, 3500, 5500), 1500);
     setTimeout(ambientTrails, 300);
   });
 }
