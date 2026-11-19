@@ -298,57 +298,36 @@ export function moneyRain(el, count) {
   }));
 }
 
-const FIREWORK_COLORS = ['#ff3e81', '#ffd23f', '#3ec1ff', '#7cff6b', '#ffffff'];
-
-function burst(x, y) {
-  const color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
-  for (let i = 0; i < 14; i++) {
-    const angle = i / 14 * Math.PI * 2;
-    const distance = rand(16, 30);
-    const node = particle('spark', x, y, rand(2.5, 4), [
-      { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
-      { transform: `translate3d(${Math.cos(angle) * distance}px,${Math.sin(angle) * distance + 6}px,0) scale(.4)`, opacity: 0 }
-    ], rand(700, 1000), 'ease-out');
-    if (node) {
-      node.style.background = color;
-    }
-  }
-}
-
-// Fire speed in px per ms, so every puff reaches the top of the screen at the same pace.
+// Fire speed in px per ms, so every puff rises at the same pace.
 const FIRE_SPEED = .9;
 
-function flame(x, y) {
-  const rise = y + 40;
-  const spread = rand(-28, 28);
-  particle(Math.random() < .3 ? 'fire-core' : 'fire', x + rand(-3, 3), y, rand(10, 18), [
+function flame(x, y, rise, size) {
+  const spread = rand(-.1, .1) * rise;
+  particle(Math.random() < .3 ? 'fire-core' : 'fire', x + rand(-.2, .2) * size, y, size, [
     { transform: 'translate3d(0,0,0) scale(.5)', opacity: .95 },
     { transform: `translate3d(${spread * .15}px,${-rise * .1}px,0) scale(1.4)`, opacity: .95, offset: .25, easing: 'ease-in' },
     { transform: `translate3d(${spread}px,${-rise}px,0) scale(2.6)`, opacity: 0 }
   ], Math.max(500, rise / FIRE_SPEED), 'linear');
 }
 
-// A continuous blast of flame from the statue's torch up to the top of the screen.
-export function torchFire(el, ms) {
+// Flames from the statue's raised torch, which sits on its upper left.
+function burnTorch(el, ms, interval, emit) {
   if (!active() || !el?.isConnected) return Promise.resolve();
   const r = el.getBoundingClientRect();
   const x = r.left + r.width * .3;
   const y = r.top + r.height * .1;
-  const timer = setInterval(() => {
-    flame(x, y);
-    flame(x, y);
-  }, 22);
+  const timer = setInterval(() => emit(x, y), interval);
   return new Promise(resolve => setTimeout(resolve, ms)).finally(() => clearInterval(timer));
 }
 
-// Bursts above the statue's raised torch, which sits on its upper left.
-export function fireworks(el, count) {
-  if (!active() || !el?.isConnected) return;
-  const r = el.getBoundingClientRect();
-  for (let i = 0; i < count; i++) {
-    setTimeout(() => burst(r.left + r.width * rand(.1, .5), r.top - r.height * rand(.2, .7)), i * 260);
-  }
-}
+// A continuous blast up to the top of the screen.
+export const torchFire = (el, ms) => burnTorch(el, ms, 22, (x, y) => {
+  flame(x, y, y + 40, rand(10, 18));
+  flame(x, y, y + 40, rand(10, 18));
+});
+
+// A small, candle-like flicker that stays on the torch.
+export const torchFlicker = (el, ms) => burnTorch(el, ms, 90, (x, y) => flame(x, y, rand(10, 20), rand(4, 7)));
 
 function antDot(x,y) {
   particle('ant',x,y,rand(2,4),[

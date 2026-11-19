@@ -2,7 +2,7 @@ import { behaviors } from './behaviors.js';
 import { surprise } from './celebration.js';
 import { reducedMotion, rand, choose } from './engine.js';
 import { entrance } from './intro.js';
-import { coffeeSteam, idleTrails, bloodDrops } from './trails.js';
+import { coffeeSteam, idleTrails, bloodDrops, torchFlicker } from './trails.js';
 import { cycleGreeting } from './greeting.js';
 import { waveFlags } from './flags.js';
 import { startStarfield } from './stars.js';
@@ -15,6 +15,7 @@ const heart = emojis.find(el => el.dataset.action === 'heart');
 const noEntry = emojis.find(el => el.dataset.action === 'censor');
 const coffee = emojis.find(el => el.dataset.action === 'steam');
 const adobe = emojis.find(el => el.dataset.action === 'bleed');
+const statue = emojis.find(el => el.dataset.action === 'liberty');
 const vehicles = {
   car: emojis.find(el => el.dataset.action === 'drive'),
   plane: emojis.find(el => el.dataset.action === 'fly'),
@@ -95,6 +96,7 @@ const whenVisible = () => new Promise(resolve => {
 if (!reducedMotion.matches) {
   whenVisible().then(() => {
     setTimeout(() => every(1400, 2200, () => coffeeSteam(coffee)), 700);
+    setTimeout(() => every(1000, 1000, () => torchFlicker(statue, 1000)), 900);
     return entrance();
   }).catch(() => {}).finally(() => {
     // Fill the genuinely empty area below the emojis with random ambient starlight.

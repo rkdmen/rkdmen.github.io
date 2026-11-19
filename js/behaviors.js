@@ -6,7 +6,7 @@ import { checkmate } from './gravity.js';
 import { koreaParade, eagleFlight } from './flags.js';
 import {
   snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops, bloodFlood,
-  crumbs, notifyBadge, speechBubble, footsteps, floatUp, fireworks, moneyRain, torchFire, fishSchool
+  crumbs, notifyBadge, speechBubble, footsteps, floatUp, moneyRain, torchFire, torchFlicker, fishSchool
 } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
@@ -27,6 +27,33 @@ const typing = el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { durati
 const earthBob = el => play(el, { y: [0,-5,0], scale: [1,1.13,1] }, { duration: 1.2 });
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
 const flagFlourish = el => play(el, { rotate: [0, -10, 7, -4, 0], y: [0, -5, 0] }, { duration: .8 });
+const MORPH_FADE = { duration: 160, fill: 'forwards' };
+const FADE_OUT = [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.6)' }];
+const FADE_IN = [...FADE_OUT].reverse();
+
+// Cross-fades the emoji into another glyph and back without leaving its spot.
+async function morph(el, glyph, holdMs) {
+  const original = el.textContent;
+  const fades = [];
+  const fade = frames => {
+    const animation = el.animate(frames, MORPH_FADE);
+    fades.push(animation);
+    return animation.finished;
+  };
+  try {
+    await fade(FADE_OUT);
+    el.textContent = glyph;
+    await fade(FADE_IN);
+    await new Promise(resolve => setTimeout(resolve, holdMs));
+    await fade(FADE_OUT);
+    el.textContent = original;
+    await fade(FADE_IN);
+  } finally {
+    el.textContent = original;
+    fades.forEach(animation => animation.cancel());
+  }
+}
+
 const sparkleBump = el => { particles(el); return bump(el); };
 const buzzShake = el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 });
 const waveHand = el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 });
@@ -124,9 +151,11 @@ function bite(el) {
   return play(el, { rotate: [0, -7, 5, 0], scale: [1, .94, 1] }, { duration: .35 });
 }
 
+const STAY_PUT = ['shuffle', 'apple', 'liberty'];
+
 // Two random emojis trade places over arcs, pause, and come back along the other side.
 function swapPair(emojis) {
-  const pool = emojis.filter(e => e.dataset.action !== 'shuffle' && getComputedStyle(e).visibility !== 'hidden');
+  const pool = emojis.filter(e => !STAY_PUT.includes(e.dataset.action) && getComputedStyle(e).visibility !== 'hidden');
   const a = choose(pool);
   const b = choose(pool.filter(e => e !== a));
   if (!a || !b) return Promise.resolve();
@@ -208,7 +237,7 @@ export const behaviors = {
   cheers: (el, ctx) => toast(ctx.drinks, el),
   wine: (el, ctx) => toast(ctx.drinks, el),
   sway: (el, ctx) => toast(ctx.drinks, el),
-  pop: sparkleBump,
+  apple: el => morph(el, '🍎', 1100),
   bleed: (el, ctx) => {
     bloodDrops(el, ctx.clicked ? 22 : 3);
     const throb = play(el, { y: [0, -4, 0], scale: [1, 1.1, 1] }, { duration: .5 });
@@ -237,8 +266,7 @@ export const behaviors = {
     if (ctx.clicked) {
       return Promise.all([torchFire(el, 1600), play(el, { y: [0, 4, 3, 4, 0], scale: [1, .94, .96, .94, 1] }, { duration: 1.6 })]);
     }
-    fireworks(el, 1);
-    return bump(el);
+    return torchFlicker(el, 1200);
   },
   checkmate: (el, ctx) => (ctx.clicked
     ? ctx.takeover(() => checkmate([...document.querySelectorAll('.emoji-line > *')]))
