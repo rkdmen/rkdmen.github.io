@@ -80,7 +80,7 @@ async function takeover(run) {
 title?.addEventListener('click', () => takeover(() => surprise(title, emojis)));
 
 cycleGreeting(document.querySelector('.greeting'));
-waveFlags(emojis.filter(el => el.dataset.action === 'flag'));
+waveFlags(emojis.filter(el => ['korea', 'usa'].includes(el.dataset.action)));
 
 const whenVisible = () => new Promise(resolve => {
   const onChange = () => {

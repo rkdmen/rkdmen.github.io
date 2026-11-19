@@ -197,3 +197,11 @@ html.crashing{background:#ffd9d9;transition:none}
 /* 🅰️ tap: drips grow down from the top until the screen is covered. */
 .blood-flood{position:fixed;inset:0;z-index:25;overflow:hidden;pointer-events:none}
 .blood-drip{position:absolute;top:0;height:120%;background:linear-gradient(to bottom,#5c0009,#a3000f 70%,#c80016);border-radius:0 0 50% 50%/0 0 7% 7%;transform:scaleY(0);transform-origin:top}
+.parade-flag{position:absolute;left:0;line-height:1.4;white-space:nowrap;will-change:transform}
+.chant{position:absolute;left:50%;bottom:7%;font:900 clamp(30px,9vw,64px)/1 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:#cd2e3a;text-shadow:0 3px 0 #0047a0,0 0 18px rgba(255,255,255,.55);white-space:nowrap;transform-origin:50% 100%}
+.eagle{position:absolute;left:0;top:0;font-size:44px;line-height:1;will-change:transform,opacity}
+.parade-flag .flag{display:inline-block}
+.trail-fire{z-index:19;background:radial-gradient(circle,#fff3b0 0%,#ffb21a 35%,#ff4d00 62%,rgba(200,20,0,0) 72%)}
+.trail-fire-core{z-index:19;background:radial-gradient(circle,#fff 0%,#ffe066 45%,rgba(255,150,0,0) 70%)}
+@media(prefers-color-scheme:dark){.trail-fire,.trail-fire-core{mix-blend-mode:screen}}
+.fish{position:fixed;z-index:17;font-size:24px;line-height:1;pointer-events:none}

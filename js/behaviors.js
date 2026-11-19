@@ -3,9 +3,10 @@ import { matrixRain } from './matrix.js';
 import { decodeHeadline } from './decode.js';
 import { launchRocket } from './rocket.js';
 import { checkmate } from './gravity.js';
+import { koreaParade, eagleFlight } from './flags.js';
 import {
   snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops, bloodFlood,
-  crumbs, notifyBadge, speechBubble, footsteps, floatUp, fireworks, moneyRain
+  crumbs, notifyBadge, speechBubble, footsteps, floatUp, fireworks, moneyRain, torchFire, fishSchool
 } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
@@ -25,6 +26,7 @@ const pageMode = (name, ms) => {
 const typing = el => play(el, { y: [0,-7,0,-5,0], rotate: [0,2,-2,0] }, { duration: .55 });
 const earthBob = el => play(el, { y: [0,-5,0], scale: [1,1.13,1] }, { duration: 1.2 });
 const bump = el => play(el, { y: [0, -17, 0, -7, 0], scale: [1, 1.18, 1, 1.08, 1] }, { duration: .55 });
+const flagFlourish = el => play(el, { rotate: [0, -10, 7, -4, 0], y: [0, -5, 0] }, { duration: .8 });
 const sparkleBump = el => { particles(el); return bump(el); };
 const buzzShake = el => play(el, { x: [0,-5,5,-4,4,0], rotate: [0,-9,9,0] }, { duration: .42 });
 const waveHand = el => play(el, { rotate: [0,24,-18,25,-14,0] }, { duration: .66 });
@@ -212,11 +214,14 @@ export const behaviors = {
     const throb = play(el, { y: [0, -4, 0], scale: [1, 1.1, 1] }, { duration: .5 });
     return ctx.clicked ? Promise.all([bloodFlood(), throb]) : throb;
   },
-  flag: el => play(el, { rotate: [0, -10, 7, -4, 0], y: [0, -5, 0] }, { duration: .8 }),
+  korea: (el, ctx) => (ctx.clicked ? Promise.all([koreaParade(), flagFlourish(el)]) : flagFlourish(el)),
+  usa: (el, ctx) => (ctx.clicked ? Promise.all([eagleFlight(el), flagFlourish(el)]) : flagFlourish(el)),
   steam: el => { coffeeSteam(el, 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
   champagne: el => { champagneBubbles(el, 6); particles(el, ['✨','🥂'], 2); return play(el, { y: [0,-12,0], rotate: [0,-17,15,0], scale: [1,1.15,1] }, { duration: .8 }); },
   // Conveyor belt: rides off to the right and comes back round from the left.
-  sushi: el => passThrough(el, { dx: 46, dy: 0, hop: 0, duration: 1.3 }),
+  sushi: (el, ctx) => (ctx.clicked
+    ? Promise.all([fishSchool(el, 12), play(el, { scale: [1, 1.35, .9, 1] }, { duration: .6 })])
+    : passThrough(el, { dx: 46, dy: 0, hop: 0, duration: 1.3 })),
   sizzle: el => { particles(el, ['♨️','✨'], 3); return play(el, { scale: [1,1.08,1], y: [0,-4,0] }, { duration: .72 }); },
   egg: panToss,
   croissant: (el, ctx) => {
@@ -228,7 +233,13 @@ export const behaviors = {
     return play(el, { y: [0, -12, 3, 0], scaleY: [1, 1.08, .85, 1] }, { duration: .5 });
   },
   bite: (el, ctx) => (ctx.clicked ? bite(el) : bump(el)),
-  liberty: (el, ctx) => { fireworks(el, ctx.clicked ? 4 : 1); return bump(el); },
+  liberty: (el, ctx) => {
+    if (ctx.clicked) {
+      return Promise.all([torchFire(el, 1600), play(el, { y: [0, 4, 3, 4, 0], scale: [1, .94, .96, .94, 1] }, { duration: 1.6 })]);
+    }
+    fireworks(el, 1);
+    return bump(el);
+  },
   checkmate: (el, ctx) => (ctx.clicked
     ? ctx.takeover(() => checkmate([...document.querySelectorAll('.emoji-line > *')]))
     : sparkleBump(el)),

@@ -252,6 +252,35 @@ export function floatUp(el, chars, count) {
   }));
 }
 
+const FISH = ['🐟', '🐠', '🐡'];
+const SWIM_STEPS = 10;
+
+// Fish glyphs face left: mirror them when heading right, then point them along the heading.
+function swimFrame(angle, x, y, scale, wiggle, opacity) {
+  const right = Math.cos(angle) > 0;
+  const turn = (right ? angle : angle - Math.PI) * 180 / Math.PI + wiggle;
+  return { transform: `${POP}(1) translate(${x}px, ${y}px) rotate(${turn}deg) scale(${right ? -scale : scale}, ${scale})`, opacity };
+}
+
+// A school of fish bursts out of the emoji and swims off screen in every direction.
+export function fishSchool(el, count) {
+  const r = el.getBoundingClientRect();
+  const reach = Math.max(innerWidth, innerHeight) * .85;
+  return Promise.all(Array.from({ length: count }, (_, i) => {
+    const angle = i / count * Math.PI * 2 + rand(-.25, .25);
+    const sway = rand(8, 16);
+    const frames = Array.from({ length: SWIM_STEPS + 1 }, (_, k) => {
+      const t = k / SWIM_STEPS;
+      const along = reach * t ** .8;
+      const side = sway * Math.sin(t * Math.PI * 4);
+      const x = Math.cos(angle) * along - Math.sin(angle) * side;
+      const y = Math.sin(angle) * along + Math.cos(angle) * side;
+      return swimFrame(angle, x, y, Math.min(1, .3 + t * 4), Math.sin(t * Math.PI * 8) * 12, k === SWIM_STEPS ? 0 : 1);
+    });
+    return decoration('fish', FISH[i % FISH.length], r.left + r.width / 2, r.top + r.height / 2, frames, rand(1800, 2600));
+  }));
+}
+
 const MONEY = ['💸', '💵', '💵', '🪙'];
 
 // Bills and coins tumble from the emoji down past the bottom of the screen.
@@ -284,6 +313,32 @@ function burst(x, y) {
       node.style.background = color;
     }
   }
+}
+
+// Fire speed in px per ms, so every puff reaches the top of the screen at the same pace.
+const FIRE_SPEED = .9;
+
+function flame(x, y) {
+  const rise = y + 40;
+  const spread = rand(-28, 28);
+  particle(Math.random() < .3 ? 'fire-core' : 'fire', x + rand(-3, 3), y, rand(10, 18), [
+    { transform: 'translate3d(0,0,0) scale(.5)', opacity: .95 },
+    { transform: `translate3d(${spread * .15}px,${-rise * .1}px,0) scale(1.4)`, opacity: .95, offset: .25, easing: 'ease-in' },
+    { transform: `translate3d(${spread}px,${-rise}px,0) scale(2.6)`, opacity: 0 }
+  ], Math.max(500, rise / FIRE_SPEED), 'linear');
+}
+
+// A continuous blast of flame from the statue's torch up to the top of the screen.
+export function torchFire(el, ms) {
+  if (!active() || !el?.isConnected) return Promise.resolve();
+  const r = el.getBoundingClientRect();
+  const x = r.left + r.width * .3;
+  const y = r.top + r.height * .1;
+  const timer = setInterval(() => {
+    flame(x, y);
+    flame(x, y);
+  }, 22);
+  return new Promise(resolve => setTimeout(resolve, ms)).finally(() => clearInterval(timer));
 }
 
 // Bursts above the statue's raised torch, which sits on its upper left.
