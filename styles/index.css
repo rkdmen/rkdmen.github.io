@@ -202,3 +202,11 @@ html.crashing{background:#ffd9d9;transition:none}
 .trail-fire-core{z-index:19;background:radial-gradient(circle,#fff 0%,#ffe066 45%,rgba(255,150,0,0) 70%)}
 @media(prefers-color-scheme:dark){.trail-fire,.trail-fire-core{mix-blend-mode:screen}}
 .fish{position:fixed;z-index:17;font-size:24px;line-height:1;pointer-events:none}
+.zodiac{position:fixed;z-index:17;width:0;height:0;pointer-events:none}
+.zodiac span{position:absolute;left:0;top:0;font-size:20px;line-height:1}
+.marcher,.prop{position:fixed;z-index:17;pointer-events:none;line-height:1}
+.marcher{display:flex;flex-direction:column;align-items:center;font-size:14px}
+.marcher-cargo{font-size:10px;margin-bottom:-2px}
+.marcher-ant{display:inline-block;animation:ant-walk .22s ease-in-out infinite alternate}
+@keyframes ant-walk{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+.prop{font-size:22px}

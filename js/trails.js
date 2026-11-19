@@ -328,3 +328,113 @@ export const torchFire = (el, ms) => burnTorch(el, ms, 22, (x, y) => {
 
 // A small, candle-like flicker that stays on the torch.
 export const torchFlicker = (el, ms) => burnTorch(el, ms, 90, (x, y) => flame(x, y, rand(10, 20), rand(4, 7)));
+
+const ZODIAC = ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐵', '🐔', '🐶', '🐷'];
+const OX = 1;
+const SPINS = 3;
+const SPIN = { duration: 2200, easing: 'cubic-bezier(.12, .75, .2, 1)', fill: 'forwards' };
+
+// The twelve zodiac animals circle the emoji, spin, and stop with the ox on top.
+export async function zodiacWheel(el) {
+  if (!active() || !el?.isConnected) return;
+  const r = el.getBoundingClientRect();
+  const radius = Math.max(42, r.width * 1.8);
+  const step = 360 / ZODIAC.length;
+  const total = -OX * step - 360 * SPINS;
+  const wheel = document.createElement('div');
+  wheel.className = 'zodiac';
+  wheel.setAttribute('aria-hidden', 'true');
+  wheel.style.left = `${r.left + r.width / 2}px`;
+  wheel.style.top = `${r.top + r.height / 2}px`;
+  // Each animal counter-rotates by the wheel's turn so it stays upright.
+  const seat = (angle, turn) => `translate(-50%, -50%) rotate(${angle}deg) translateY(${-radius}px) rotate(${-angle - turn}deg)`;
+  const animals = ZODIAC.map((glyph, i) => {
+    const node = document.createElement('span');
+    node.textContent = glyph;
+    wheel.append(node);
+    node.animate([{ transform: seat(i * step, 0) }, { transform: seat(i * step, total) }], SPIN);
+    return node;
+  });
+  document.body.append(wheel);
+  try {
+    wheel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 });
+    await wheel.animate([{ transform: 'rotate(0deg)' }, { transform: `rotate(${total}deg)` }], SPIN).finished;
+    const ox = animals[OX];
+    animals.forEach(node => {
+      if (node !== ox) {
+        node.animate([{ opacity: 1 }, { opacity: .15 }], { duration: 300, fill: 'forwards' });
+      }
+    });
+    ox.animate([
+      { transform: seat(OX * step, total) },
+      { transform: `${seat(OX * step, total)} scale(1.7)` }
+    ], { duration: 300, easing: 'ease-out', fill: 'forwards' });
+    await speechBubble(ox, '1985 소띠');
+    await wheel.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished;
+  } finally {
+    wheel.remove();
+  }
+}
+
+const CARGO = ['🪙', '💵'];
+
+// A column of tiny ants marches out of the emoji to the bottom of the screen and off to the right, carrying cash.
+export function antArmy(el, count) {
+  if (!active() || !el?.isConnected) return Promise.resolve();
+  const r = el.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const ground = innerHeight - 26 - y;
+  const exit = innerWidth - x + 40;
+  return Promise.all(Array.from({ length: count }, (_, i) => {
+    const marcher = document.createElement('span');
+    marcher.className = 'marcher';
+    marcher.setAttribute('aria-hidden', 'true');
+    marcher.style.left = `${x}px`;
+    marcher.style.top = `${y}px`;
+    const cargo = document.createElement('span');
+    cargo.className = 'marcher-cargo';
+    cargo.textContent = CARGO[i % CARGO.length];
+    const ant = document.createElement('span');
+    ant.className = 'marcher-ant';
+    ant.textContent = '🐜';
+    marcher.append(cargo, ant);
+    document.body.append(marcher);
+    // 🐜 faces left, so the column is mirrored to face its march.
+    return marcher.animate([
+      { transform: 'translate(-50%, -50%) translate(0, 0) scaleX(-1)', opacity: 0 },
+      { transform: 'translate(-50%, -50%) translate(0, 0) scaleX(-1)', opacity: 1, offset: .04 },
+      { transform: `translate(-50%, -50%) translate(0, ${ground}px) scaleX(-1)`, opacity: 1, offset: .35 },
+      { transform: `translate(-50%, -50%) translate(${exit}px, ${ground}px) scaleX(-1)`, opacity: 1 }
+    ], { duration: 4200, delay: i * 230, easing: 'linear', fill: 'both' }).finished
+      .catch(() => {}).finally(() => marcher.remove());
+  }));
+}
+
+// A cigarette drifts up to the sign, gets zapped, and spins away in a puff of smoke.
+export async function zapCigarette(el) {
+  if (!active() || !el?.isConnected) return;
+  const r = el.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const near = r.width * .95;
+  await decoration('prop', '🚬', x, y, [
+    { transform: `${POP}(1) translate(${near * 3}px, -14px) rotate(-12deg)`, opacity: 0 },
+    { transform: `${POP}(1) translate(${near}px, 0) rotate(-4deg)`, opacity: 1 }
+  ], 700);
+  decoration('prop', '⚡', x + near * .5, y - r.height * .25, [
+    { transform: `${POP}(.3)`, opacity: 0 },
+    { transform: `${POP}(1.4)`, opacity: 1, offset: .3 },
+    { transform: `${POP}(.8)`, opacity: 0 }
+  ], 450);
+  for (let i = 0; i < 4; i++) {
+    exhaust(x + near + rand(-4, 4), y + rand(-4, 4));
+  }
+  await Promise.all([
+    decoration('prop', '🚬', x, y, [
+      { transform: `${POP}(1) translate(${near}px, 0) rotate(-4deg)`, opacity: 1 },
+      { transform: `${POP}(.7) translate(${near + 14}px, 34px) rotate(160deg)`, opacity: 0 }
+    ], 700),
+    speechBubble(el, 'No thanks')
+  ]);
+}

@@ -6,7 +6,8 @@ import { checkmate } from './gravity.js';
 import { koreaParade, eagleFlight } from './flags.js';
 import {
   snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, bloodDrops, bloodFlood,
-  crumbs, notifyBadge, speechBubble, footsteps, floatUp, moneyRain, torchFire, torchFlicker, fishSchool
+  crumbs, notifyBadge, speechBubble, footsteps, floatUp, moneyRain, torchFire, torchFlicker, fishSchool,
+  zodiacWheel, antArmy, zapCigarette
 } from './trails.js';
 
 const shake = el => play(el, { rotate: [0, -17, 15, -14, 0] }, { duration: .48 });
@@ -232,7 +233,13 @@ export const behaviors = {
     return play(el, { scale: [1, 1.25, 1], rotate: [0, -15, 15, 0] }, { duration: .6 });
   },
   look: el => play(el, { x: [0, 12, -9, 0], rotate: [0, 10, -10, 0] }, { duration: .6 }),
-  no: el => { particles(el, ['🔥'], 3); return shake(el); },
+  no: (el, ctx) => {
+    if (ctx.clicked) {
+      return Promise.all([zapCigarette(el), new Promise(resolve => setTimeout(resolve, 700)).then(() => shake(el))]);
+    }
+    particles(el, ['🔥'], 3);
+    return shake(el);
+  },
   censor: (el, ctx) => (ctx.clicked ? pageMode('censoring', 1500) : blurSelf(el)),
   cheers: (el, ctx) => toast(ctx.drinks, el),
   wine: (el, ctx) => toast(ctx.drinks, el),
@@ -275,11 +282,11 @@ export const behaviors = {
   buzz: (el, ctx) => (ctx.clicked ? Promise.all([notifyBadge(el), buzzShake(el)]) : buzzShake(el)),
   drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, hop: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
   // The bull faces left, so it charges left.
-  charge: el => passThrough(el, { dx: -50, dy: 0, hop: 0, duration: 1.1 }),
+  charge: (el, ctx) => (ctx.clicked ? zodiacWheel(el) : passThrough(el, { dx: -50, dy: 0, hop: 0, duration: 1.1 })),
   // Scurries on the spot.
   crawl: (el, ctx) => {
-    if (ctx.clicked) particles(el, ['🍪','✦'], 3);
-    return play(el, { x: [0, -2, 2, -2, 2, -1, 0], rotate: [0, -10, 10, -8, 8, -4, 0] }, { duration: ctx.clicked ? 1 : .7 });
+    const scurry = play(el, { x: [0, -2, 2, -2, 2, -1, 0], rotate: [0, -10, 10, -8, 8, -4, 0] }, { duration: ctx.clicked ? 1 : .7 });
+    return ctx.clicked ? Promise.all([antArmy(el, 8), speechBubble(el, '개미 💪'), scurry]) : scurry;
   },
   grow: (el, ctx) => (ctx.clicked ? stockCrash(el) : marketPulse(el)),
   coin: (el, ctx) => {
