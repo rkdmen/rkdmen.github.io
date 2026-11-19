@@ -96,7 +96,7 @@ const whenVisible = () => new Promise(resolve => {
 if (!reducedMotion.matches) {
   whenVisible().then(() => {
     setTimeout(() => every(1400, 2200, () => coffeeSteam(coffee)), 700);
-    setTimeout(() => every(1000, 1000, () => torchFlicker(statue, 1000)), 900);
+    setTimeout(() => every(1000, 2000, () => torchFlicker(statue, 450)), 900);
     return entrance();
   }).catch(() => {}).finally(() => {
     // Fill the genuinely empty area below the emojis with random ambient starlight.

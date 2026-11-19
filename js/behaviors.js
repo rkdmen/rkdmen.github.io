@@ -5,7 +5,7 @@ import { launchRocket } from './rocket.js';
 import { checkmate } from './gravity.js';
 import { koreaParade, eagleFlight } from './flags.js';
 import {
-  snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, antTrail, bloodDrops, bloodFlood,
+  snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, bloodDrops, bloodFlood,
   crumbs, notifyBadge, speechBubble, footsteps, floatUp, moneyRain, torchFire, torchFlicker, fishSchool
 } from './trails.js';
 
@@ -151,7 +151,7 @@ function bite(el) {
   return play(el, { rotate: [0, -7, 5, 0], scale: [1, .94, 1] }, { duration: .35 });
 }
 
-const STAY_PUT = ['shuffle', 'apple', 'liberty'];
+const STAY_PUT = ['shuffle', 'apple', 'liberty', 'crawl', 'sushi'];
 
 // Two random emojis trade places over arcs, pause, and come back along the other side.
 function swapPair(emojis) {
@@ -247,10 +247,9 @@ export const behaviors = {
   usa: (el, ctx) => (ctx.clicked ? Promise.all([eagleFlight(el), flagFlourish(el)]) : flagFlourish(el)),
   steam: el => { coffeeSteam(el, 3); return play(el, { y: [0,-9,-3,0], scale: [1,1.12,1] }, { duration: .65 }); },
   champagne: el => { champagneBubbles(el, 6); particles(el, ['✨','🥂'], 2); return play(el, { y: [0,-12,0], rotate: [0,-17,15,0], scale: [1,1.15,1] }, { duration: .8 }); },
-  // Conveyor belt: rides off to the right and comes back round from the left.
   sushi: (el, ctx) => (ctx.clicked
     ? Promise.all([fishSchool(el, 12), play(el, { scale: [1, 1.35, .9, 1] }, { duration: .6 })])
-    : passThrough(el, { dx: 46, dy: 0, hop: 0, duration: 1.3 })),
+    : play(el, { rotate: [0, -8, 8, -4, 0], scale: [1, 1.06, 1] }, { duration: .7 })),
   sizzle: el => { particles(el, ['♨️','✨'], 3); return play(el, { scale: [1,1.08,1], y: [0,-4,0] }, { duration: .72 }); },
   egg: panToss,
   croissant: (el, ctx) => {
@@ -266,7 +265,7 @@ export const behaviors = {
     if (ctx.clicked) {
       return Promise.all([torchFire(el, 1600), play(el, { y: [0, 4, 3, 4, 0], scale: [1, .94, .96, .94, 1] }, { duration: 1.6 })]);
     }
-    return torchFlicker(el, 1200);
+    return torchFlicker(el, 450);
   },
   checkmate: (el, ctx) => (ctx.clicked
     ? ctx.takeover(() => checkmate([...document.querySelectorAll('.emoji-line > *')]))
@@ -277,11 +276,10 @@ export const behaviors = {
   drive: (el, ctx) => passThrough(el, { dx: -48, dy: 0, hop: 0, duration: ctx.clicked ? 1.5 : 1.25, onMove: exhaustTrail() }),
   // The bull faces left, so it charges left.
   charge: el => passThrough(el, { dx: -50, dy: 0, hop: 0, duration: 1.1 }),
+  // Scurries on the spot.
   crawl: (el, ctx) => {
     if (ctx.clicked) particles(el, ['🍪','✦'], 3);
-    return travel(el, [[0,0],[9,-7,-12],[28,6,10],[47,-9,-5],[30,2,12],[0,0,0]], {
-      duration: ctx.clicked ? 2.0 : 1.5, onMove: antTrail()
-    });
+    return play(el, { x: [0, -2, 2, -2, 2, -1, 0], rotate: [0, -10, 10, -8, 8, -4, 0] }, { duration: ctx.clicked ? 1 : .7 });
   },
   grow: (el, ctx) => (ctx.clicked ? stockCrash(el) : marketPulse(el)),
   coin: (el, ctx) => {

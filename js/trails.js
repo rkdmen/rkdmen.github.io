@@ -328,12 +328,3 @@ export const torchFire = (el, ms) => burnTorch(el, ms, 22, (x, y) => {
 
 // A small, candle-like flicker that stays on the torch.
 export const torchFlicker = (el, ms) => burnTorch(el, ms, 90, (x, y) => flame(x, y, rand(10, 20), rand(4, 7)));
-
-function antDot(x,y) {
-  particle('ant',x,y,rand(2,4),[
-    {transform:'translate3d(0,0,0) scale(1)',opacity:.65},
-    {transform:'translate3d(0,-4px,0) scale(.1)',opacity:0}
-  ],rand(500,850), 'ease-out');
-}
-export const antTrail = () => trail(85,rect=>
-  ({x:rect.x+rect.width*.18,y:rect.y+rect.height*.76}),antDot);
