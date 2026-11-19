@@ -209,18 +209,6 @@ export function notifyBadge(el) {
   ], 1600);
 }
 
-// A speech bubble above the emoji.
-export function speechBubble(el, text) {
-  const r = el.getBoundingClientRect();
-  return decoration('speech-bubble', text, r.left + r.width / 2, r.top - r.height * .35, [
-    { transform: `${POP}(.3)`, opacity: 0 },
-    { transform: `${POP}(1.08)`, opacity: 1, offset: .15 },
-    { transform: `${POP}(1)`, opacity: 1, offset: .25 },
-    { transform: `${POP}(1)`, opacity: 1, offset: .82 },
-    { transform: `${POP}(.9)`, opacity: 0 }
-  ], 1800);
-}
-
 // Footprints walking away to the left of the emoji, appearing one by one.
 export function footsteps(el, count) {
   const r = el.getBoundingClientRect();
@@ -369,7 +357,7 @@ export async function zodiacWheel(el) {
       { transform: seat(OX * step, total) },
       { transform: `${seat(OX * step, total)} scale(1.7)` }
     ], { duration: 300, easing: 'ease-out', fill: 'forwards' });
-    await speechBubble(ox, '1985 소띠');
+    await new Promise(resolve => setTimeout(resolve, 1200));
     await wheel.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished;
   } finally {
     wheel.remove();
@@ -430,11 +418,8 @@ export async function zapCigarette(el) {
   for (let i = 0; i < 4; i++) {
     exhaust(x + near + rand(-4, 4), y + rand(-4, 4));
   }
-  await Promise.all([
-    decoration('prop', '🚬', x, y, [
-      { transform: `${POP}(1) translate(${near}px, 0) rotate(-4deg)`, opacity: 1 },
-      { transform: `${POP}(.7) translate(${near + 14}px, 34px) rotate(160deg)`, opacity: 0 }
-    ], 700),
-    speechBubble(el, 'No thanks')
-  ]);
+  await decoration('prop', '🚬', x, y, [
+    { transform: `${POP}(1) translate(${near}px, 0) rotate(-4deg)`, opacity: 1 },
+    { transform: `${POP}(.7) translate(${near + 14}px, 34px) rotate(160deg)`, opacity: 0 }
+  ], 700);
 }

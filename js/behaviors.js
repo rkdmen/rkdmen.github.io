@@ -6,7 +6,7 @@ import { checkmate } from './gravity.js';
 import { koreaParade, eagleFlight } from './flags.js';
 import {
   snowTrail, cloudTrail, exhaustTrail, coffeeSteam, champagneBubbles, bloodDrops, bloodFlood,
-  crumbs, notifyBadge, speechBubble, footsteps, floatUp, moneyRain, torchFire, torchFlicker, fishSchool,
+  crumbs, notifyBadge, footsteps, floatUp, moneyRain, torchFire, torchFlicker, fishSchool,
   zodiacWheel, antArmy, zapCigarette
 } from './trails.js';
 
@@ -93,10 +93,9 @@ async function stockCrash(el) {
 
 const TITLE_SHAKE = [0, -3, 3, -2, 2, 0].map(x => ({ transform: `translateX(${x}px)` }));
 
-// A ring of fire, a laugh, and the headline briefly turned against itself.
+// A ring of fire and the headline briefly turned against itself.
 async function mischief(el) {
   particles(el, ['🔥'], 8);
-  speechBubble(el, "I'm 광민");
   const title = document.querySelector('.headline');
   // The decode effect also rewrites the headline; leave it alone while that runs.
   if (!title || title.classList.contains('is-decoding') || title.classList.contains('is-devilish')) return;
@@ -286,7 +285,7 @@ export const behaviors = {
   // Scurries on the spot.
   crawl: (el, ctx) => {
     const scurry = play(el, { x: [0, -2, 2, -2, 2, -1, 0], rotate: [0, -10, 10, -8, 8, -4, 0] }, { duration: ctx.clicked ? 1 : .7 });
-    return ctx.clicked ? Promise.all([antArmy(el, 8), speechBubble(el, '개미 💪'), scurry]) : scurry;
+    return ctx.clicked ? Promise.all([antArmy(el, 8), scurry]) : scurry;
   },
   grow: (el, ctx) => (ctx.clicked ? stockCrash(el) : marketPulse(el)),
   coin: (el, ctx) => {
@@ -305,9 +304,7 @@ export const behaviors = {
   },
   ski: (el, ctx) => passThrough(el, { dx: 92, dy: 22, hop: 18, duration: ctx.clicked ? 2.4 : 2.0, onMove: snowTrail() }),
   shuffle: (el, ctx) => Promise.all([swapPair(ctx.emojis), play(el, { rotate: [0,180,360] }, { duration: .62 })]),
-  wave: (el, ctx) => (ctx.clicked
-    ? Promise.all([speechBubble(el, document.querySelector('.greeting')?.textContent ?? 'Hi'), waveHand(el)])
-    : waveHand(el)),
+  wave: waveHand,
   heart: el => play(el, { scale: [1,1.28,.96,1.34,.96,1.12,1], y: [0,-7,0,-10,0,-3,0] }, { duration: .82 }),
   fly: (el, ctx) => travel(el, loop(ctx.clicked ? 34 : 24), { duration: ctx.clicked ? 1.7 : 1.4, onMove: cloudTrail() }),
   earth: (el, ctx) => (ctx.clicked ? Promise.all([launchRocket(el), earthBob(el)]) : earthBob(el))
